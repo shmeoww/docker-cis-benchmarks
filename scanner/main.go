@@ -6,23 +6,20 @@ import (
 	"log"
 
 	"github.com/moby/moby/client"
+	"github.com/shmeoww/docker-cis-benchmarks/scanner/internal/docker"
 )
 
 func main() {
-	// context — механизм отмены и таймаутов для запросов. Пока берём пустой.
 	ctx := context.Background()
 
-	// Создаём клиент Docker через новую библиотеку moby.
-	// client.FromEnv берёт настройки подключения из окружения
-	// (на Windows — автоматически именованный канал Docker Desktop).
-	// Согласование версии API здесь включено по умолчанию.
-	cli, err := client.New(client.FromEnv)
+	// Клиент теперь создаём через наш собственный пакет docker.
+	cli, err := docker.NewClient()
 	if err != nil {
 		log.Fatalf("не удалось создать Docker-клиент: %v", err)
 	}
-	defer cli.Close() // закрыть соединение при выходе из main
+	defer cli.Close()
 
-	// --- Проверка 1: список образов ---
+	// --- список образов ---
 	images, err := cli.ImageList(ctx, client.ImageListOptions{})
 	if err != nil {
 		log.Fatalf("не удалось получить список образов: %v", err)
@@ -36,7 +33,7 @@ func main() {
 		fmt.Printf("  - %s\n", name)
 	}
 
-	// --- Проверка 2: список контейнеров (все, включая остановленные) ---
+	// --- список контейнеров ---
 	containers, err := cli.ContainerList(ctx, client.ContainerListOptions{All: true})
 	if err != nil {
 		log.Fatalf("не удалось получить список контейнеров: %v", err)
