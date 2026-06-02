@@ -9,20 +9,7 @@ import (
 	"github.com/moby/moby/client"
 	"github.com/shmeoww/docker-cis-benchmarks/scanner/internal/checks"
 	"github.com/shmeoww/docker-cis-benchmarks/scanner/internal/docker"
-	"github.com/shmeoww/docker-cis-benchmarks/scanner/internal/model"
 )
-
-func printResults(label string, results []model.CheckResult) {
-	fmt.Printf("=== %s ===\n\n", label)
-	for _, r := range results {
-		b, _ := json.MarshalIndent(r, "", "  ")
-		fmt.Println(string(b))
-		fmt.Println()
-	}
-	s := model.ComputeSummary(results)
-	fmt.Printf("Оценка: %d/100 | ✓ %d | ✗ %d | ⚠ %d\n\n",
-		s.Score, s.Passed, s.Failed, s.Warned)
-}
 
 func main() {
 	ctx := context.Background()
@@ -33,35 +20,31 @@ func main() {
 	}
 	defer cli.Close()
 
-	// --- Проверяем образ ---
-	imageData, err := docker.CollectImage(ctx, cli, "mysql:8.0")
+	// --- Полный отчёт по образу через engine ---
+	fmt.Println("Сканируем образ mysql:8.0 ...")
+	imageReport, err := checks.ScanImage(ctx, cli, "mysql:8.0")
 	if err != nil {
-		log.Fatalf("CollectImage: %v", err)
+		log.Fatalf("ScanImage: %v", err)
 	}
-	var imageResults []model.CheckResult
-	for _, c := range checks.ImageChecks {
-		imageResults = append(imageResults, c.Run(imageData))
-	}
-	printResults("Образ mysql:8.0 — 6 проверок", imageResults)
+	printReport(imageReport)
 
-	// --- Проверяем первый контейнер из списка ---
+	// --- Полный отчёт по первому контейнеру через engine ---
 	containers, err := cli.ContainerList(ctx, client.ContainerListOptions{All: true})
 	if err != nil {
 		log.Fatalf("ContainerList: %v", err)
 	}
-	if len(containers.Items) == 0 {
-		log.Fatal("нет контейнеров")
+	if len(containers.Items) > 0 {
+		fmt.Printf("Сканируем контейнер %s ...\n", containers.Items[0].Names[0])
+		containerReport, err := checks.ScanContainer(ctx, cli, containers.Items[0].ID)
+		if err != nil {
+			log.Fatalf("ScanContainer: %v", err)
+		}
+		printReport(containerReport)
 	}
-	ref := containers.Items[0].ID
-	name := containers.Items[0].Names[0]
+}
 
-	containerData, err := docker.CollectContainer(ctx, cli, ref)
-	if err != nil {
-		log.Fatalf("CollectContainer: %v", err)
-	}
-	var containerResults []model.CheckResult
-	for _, c := range checks.ContainerChecks {
-		containerResults = append(containerResults, c.Run(containerData))
-	}
-	printResults("Контейнер "+name+" — 14 проверок", containerResults)
+func printReport(report interface{}) {
+	b, _ := json.MarshalIndent(report, "", "  ")
+	fmt.Println(string(b))
+	fmt.Println()
 }
