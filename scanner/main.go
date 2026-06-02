@@ -1,50 +1,42 @@
 package main
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
-	"github.com/moby/moby/client"
-	"github.com/shmeoww/docker-cis-benchmarks/scanner/internal/docker"
+	"github.com/shmeoww/docker-cis-benchmarks/scanner/internal/model"
 )
 
 func main() {
-	ctx := context.Background()
+	// Проверяем, что типы сериализуются в JSON точно по контракту из п. 1.1.
+	check := model.CheckResult{
+		ID:           "container_no_privileged",
+		Title:        "Контейнер не должен запускаться в привилегированном режиме",
+		Category:     "container",
+		CISReference: "5.4",
+		Severity:     model.SeverityCritical,
+		Status:       model.StatusFail,
+		Details:      "HostConfig.Privileged = true",
+		Remediation:  "Перезапустите контейнер без флага --privileged.",
+	}
 
-	cli, err := docker.NewClient()
+	b, err := json.MarshalIndent(check, "", "  ")
 	if err != nil {
-		log.Fatalf("не удалось создать Docker-клиент: %v", err)
+		log.Fatalf("ошибка сериализации: %v", err)
 	}
-	defer cli.Close()
+	fmt.Println("Один CheckResult в JSON:")
+	fmt.Println(string(b))
 
-	// Берём первый контейнер из списка — для проверки сборщика.
-	containers, err := cli.ContainerList(ctx, client.ContainerListOptions{All: true})
-	if err != nil {
-		log.Fatalf("не удалось получить список контейнеров: %v", err)
+	// Проверяем ComputeSummary
+	checks := []model.CheckResult{
+		{Status: model.StatusPass, Severity: model.SeverityHigh},
+		{Status: model.StatusFail, Severity: model.SeverityCritical},
+		{Status: model.StatusFail, Severity: model.SeverityHigh},
+		{Status: model.StatusWarn, Severity: model.SeverityMedium},
 	}
-	if len(containers.Items) == 0 {
-		log.Fatal("нет контейнеров для проверки")
-	}
-	ref := containers.Items[0].ID
-
-	data, err := docker.CollectContainer(ctx, cli, ref)
-	if err != nil {
-		log.Fatalf("не удалось собрать данные по контейнеру: %v", err)
-	}
-
-	fmt.Printf("Контейнер: %s\n", data.Name)
-	fmt.Printf("  Образ:             %s\n", data.Image)
-	fmt.Printf("  Privileged:        %v\n", data.Privileged)
-	fmt.Printf("  Доб. capabilities: %v\n", data.AddedCaps)
-	fmt.Printf("  NetworkMode:       %q\n", data.NetworkMode)
-	fmt.Printf("  PidMode:           %q\n", data.PidMode)
-	fmt.Printf("  IpcMode:           %q\n", data.IpcMode)
-	fmt.Printf("  Монтирования:      %v\n", data.Binds)
-	fmt.Printf("  SecurityOpt:       %v\n", data.SecurityOpt)
-	fmt.Printf("  ReadonlyRootfs:    %v\n", data.ReadonlyRootfs)
-	fmt.Printf("  Лимит памяти:      %d\n", data.MemoryLimit)
-	fmt.Printf("  Лимит CPU (nano):  %d\n", data.NanoCPUs)
-	fmt.Printf("  Лимит PIDs:        %d\n", data.PidsLimit)
-	fmt.Printf("  Restart policy:    %q (max retry %d)\n", data.RestartPolicy, data.MaxRetry)
+	summary := model.ComputeSummary(checks)
+	sb, _ := json.MarshalIndent(summary, "", "  ")
+	fmt.Println("\nSummary для 4 проверок:")
+	fmt.Println(string(sb))
 }
