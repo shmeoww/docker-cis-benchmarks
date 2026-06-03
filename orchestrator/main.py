@@ -76,6 +76,8 @@ def scan(request: ScanRequest):
                 status_code=400,
                 detail="target_type должен быть 'image' или 'container'",
             )
+    except HTTPException:
+        raise  # HTTPException (400, 404 и т.д.) передаём как есть
     except req_lib.ConnectionError:
         raise HTTPException(
             status_code=503,
