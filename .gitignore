@@ -19,6 +19,7 @@ __pycache__/
 *.egg-info/
 build/
 dist/
+.coverage 
 
 # ===== Секреты (НИКОГДА не коммитим) =====
 .env
