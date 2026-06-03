@@ -1,32 +1,25 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/moby/moby/client"
 	"github.com/shmeoww/docker-cis-benchmarks/scanner/internal/checks"
 	"github.com/shmeoww/docker-cis-benchmarks/scanner/internal/docker"
 )
 
-func main() {
-	// Создаём Docker-клиент один раз при старте.
-	// Все обработчики используют его через замыкание.
-	cli, err := docker.NewClient()
-	if err != nil {
-		log.Fatalf("не удалось подключиться к Docker: %v", err)
-	}
-	defer cli.Close()
-
+// setupRouter создаёт и настраивает Gin-роутер со всеми эндпоинтами.
+// Вынесено отдельно чтобы можно было тестировать без запуска сервера.
+func setupRouter(cli *client.Client) *gin.Engine {
 	r := gin.Default()
 
-	// GET /health — проверка работоспособности сервиса
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok", "version": checks.Version})
 	})
 
-	// POST /scan/image — сканировать один образ
-	// Тело: {"image": "nginx:1.27"}
 	r.POST("/scan/image", func(c *gin.Context) {
 		var req struct {
 			Image string `json:"image" binding:"required"`
@@ -35,8 +28,7 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "укажите поле image"})
 			return
 		}
-		ctx := c.Request.Context()
-		report, err := checks.ScanImage(ctx, cli, req.Image)
+		report, err := checks.ScanImage(context.Background(), cli, req.Image)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -44,8 +36,6 @@ func main() {
 		c.PureJSON(http.StatusOK, report)
 	})
 
-	// POST /scan/container — сканировать один контейнер
-	// Тело: {"container": "имя-или-id"}
 	r.POST("/scan/container", func(c *gin.Context) {
 		var req struct {
 			Container string `json:"container" binding:"required"`
@@ -54,8 +44,7 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "укажите поле container"})
 			return
 		}
-		ctx := c.Request.Context()
-		report, err := checks.ScanContainer(ctx, cli, req.Container)
+		report, err := checks.ScanContainer(context.Background(), cli, req.Container)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -63,10 +52,8 @@ func main() {
 		c.PureJSON(http.StatusOK, report)
 	})
 
-	// POST /scan/all — сканировать все образы и контейнеры
 	r.POST("/scan/all", func(c *gin.Context) {
-		ctx := c.Request.Context()
-		reports, err := checks.ScanAll(ctx, cli)
+		reports, err := checks.ScanAll(context.Background(), cli)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -74,6 +61,17 @@ func main() {
 		c.PureJSON(http.StatusOK, gin.H{"scans": reports, "total": len(reports)})
 	})
 
+	return r
+}
+
+func main() {
+	cli, err := docker.NewClient()
+	if err != nil {
+		log.Fatalf("не удалось подключиться к Docker: %v", err)
+	}
+	defer cli.Close()
+
+	r := setupRouter(cli)
 	log.Println("Сканер запущен на :8000")
 	if err := r.Run(":8000"); err != nil {
 		log.Fatalf("ошибка запуска сервера: %v", err)

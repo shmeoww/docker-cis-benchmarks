@@ -4,6 +4,7 @@ scanner/bin/
 *.test
 *.out
 coverage.*
+coverage
 *.prof
 
 # ===== Python =====
