@@ -1,3 +1,4 @@
+# GitHub Actions CI — запускается при push и pull_request в main/develop.
 # Проверяет: тесты, SAST (gosec, bandit), SCA (govulncheck, pip-audit).
 
 name: CI
@@ -10,7 +11,7 @@ on:
 
 jobs:
 
-  # Go: тесты + SAST + SCA
+  # ── Go: тесты + SAST + SCA ────────────────────────────────────────────────
   go-checks:
     name: Go tests & security
     runs-on: ubuntu-latest
@@ -21,22 +22,24 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.26'
-          cache: true
+          cache-dependency-path: scanner/go.sum
 
       - name: go mod download
         working-directory: scanner
         run: go mod download
 
-      - name: go test (unit, без Docker)
+      - name: go test (internal packages)
         working-directory: scanner
-        run: go test -short -v ./...
+        # ./internal/... вместо ./... — main_test.go требует mysql:8.0 в Docker,
+        # которого нет в CI. internal/ покрывает всю бизнес-логику.
+        run: go test -short -v ./internal/...
 
       - name: gosec — SAST (статический анализ кода Go)
         working-directory: scanner
         run: |
           go install github.com/securego/gosec/v2/cmd/gosec@latest
           gosec ./...
-        continue-on-error: true   
+        continue-on-error: true   # предупреждения не блокируют CI
 
       - name: govulncheck — SCA (уязвимости в зависимостях Go)
         working-directory: scanner
@@ -45,7 +48,7 @@ jobs:
           govulncheck ./...
         continue-on-error: true
 
-  # Python: тесты + SAST + SCA
+  # ── Python: тесты + SAST + SCA ───────────────────────────────────────────
   python-checks:
     name: Python tests & security
     runs-on: ubuntu-latest
@@ -64,6 +67,7 @@ jobs:
       - name: pytest (unit-тесты, без Go-сервиса)
         working-directory: orchestrator
         run: pytest -k "not Integration" -v
+        # Покрытие через addopts в pytest.ini — включено автоматически
 
       - name: bandit — SAST (статический анализ кода Python)
         run: |
