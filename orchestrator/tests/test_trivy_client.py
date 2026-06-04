@@ -7,7 +7,7 @@ import pytest
 from trivy_client import _parse_trivy_output
 
 
-# ─── Вспомогательная функция ──────────────────────────────────────────────────
+# Вспомогательная функция
 
 def make_trivy_json(vulnerabilities: list | None, target: str = "test") -> str:
     """Генерирует JSON в формате Trivy для тестов."""
@@ -24,8 +24,6 @@ def make_trivy_json(vulnerabilities: list | None, target: str = "test") -> str:
         ]
     })
 
-
-# ─── Тесты ────────────────────────────────────────────────────────────────────
 
 class TestParseTrivyOutput:
 

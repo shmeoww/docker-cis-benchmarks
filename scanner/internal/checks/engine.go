@@ -10,10 +10,10 @@ import (
 	"github.com/shmeoww/docker-cis-benchmarks/scanner/internal/model"
 )
 
-// Version — версия сканера, попадает в каждый ScanReport.
+// Version — версия сканера, попадает в каждый ScanReport
 const Version = "0.1.0"
 
-// ScanImage собирает данные образа и прогоняет все проверки параллельно.
+// ScanImage собирает данные образа и прогоняет все проверки параллельно
 func ScanImage(ctx context.Context, cli *client.Client, ref string) (model.ScanReport, error) {
 	data, err := docker.CollectImage(ctx, cli, ref)
 	if err != nil {
@@ -29,7 +29,7 @@ func ScanImage(ctx context.Context, cli *client.Client, ref string) (model.ScanR
 	}, nil
 }
 
-// ScanContainer собирает данные контейнера и прогоняет все проверки параллельно.
+// ScanContainer собирает данные контейнера и прогоняет все проверки параллельно
 func ScanContainer(ctx context.Context, cli *client.Client, ref string) (model.ScanReport, error) {
 	data, err := docker.CollectContainer(ctx, cli, ref)
 	if err != nil {
@@ -45,8 +45,8 @@ func ScanContainer(ctx context.Context, cli *client.Client, ref string) (model.S
 	}, nil
 }
 
-// ScanAll сканирует все локальные образы и все контейнеры.
-// Возвращает срез отчётов — по одному на каждую цель.
+// ScanAll сканирует все локальные образы и все контейнеры
+// Возвращает срез отчётов — по одному на каждую цель
 func ScanAll(ctx context.Context, cli *client.Client) ([]model.ScanReport, error) {
 	var reports []model.ScanReport
 
@@ -83,16 +83,16 @@ func ScanAll(ctx context.Context, cli *client.Client) ([]model.ScanReport, error
 	return reports, nil
 }
 
-// runImageChecks запускает каждую проверку в отдельной горутине.
-// Результаты собираются через буферизованный канал.
+// runImageChecks запускает каждую проверку в отдельной горутине
+// Результаты собираются через буферизованный канал
 func runImageChecks(data docker.ImageData) []model.CheckResult {
-	// Буфер = число проверок → горутины не блокируются на отправке.
+	// Буфер = число проверок, горутины не блокируются на отправке
 	ch := make(chan model.CheckResult, len(ImageChecks))
 	var wg sync.WaitGroup
 
 	for _, c := range ImageChecks {
 		wg.Add(1)
-		// Передаём check как аргумент — каждая горутина получает свою копию.
+		// Передаём check как аргумент — каждая горутина получает свою копию
 		go func(check ImageCheck) {
 			defer wg.Done()
 			ch <- check.Run(data)
@@ -100,7 +100,7 @@ func runImageChecks(data docker.ImageData) []model.CheckResult {
 	}
 
 	wg.Wait()  // ждём завершения всех горутин
-	close(ch)  // закрываем канал — сигнал что данных больше не будет
+	close(ch)  // закрываем канал — сигнал, что данных больше не будет
 
 	var results []model.CheckResult
 	for r := range ch { // читаем все результаты из канала
@@ -109,7 +109,7 @@ func runImageChecks(data docker.ImageData) []model.CheckResult {
 	return results
 }
 
-// runContainerChecks — то же самое для проверок контейнера.
+// runContainerChecks — то же самое для проверок контейнера
 func runContainerChecks(data docker.ContainerData) []model.CheckResult {
 	ch := make(chan model.CheckResult, len(ContainerChecks))
 	var wg sync.WaitGroup

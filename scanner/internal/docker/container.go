@@ -6,8 +6,7 @@ import (
 	"github.com/moby/moby/client"
 )
 
-// ContainerData — нормализованные данные одного контейнера
-// для CIS-проверок запущенных контейнеров (раздел 5).
+// ContainerData — нормализованные данные одного контейнера для CIS-проверок запущенных контейнеров
 type ContainerData struct {
 	ID             string
 	Name           string
@@ -17,7 +16,7 @@ type ContainerData struct {
 	NetworkMode    string   // "host" = сеть хоста
 	PidMode        string   // "host" = PID-namespace хоста
 	IpcMode        string   // "host" = IPC-namespace хоста
-	Binds          []string // монтирования "источник:цель" (для docker.sock и т.п.)
+	Binds          []string // монтирования "источник:цель"
 	SecurityOpt    []string // seccomp/apparmor/no-new-privileges
 	ReadonlyRootfs bool     // --read-only
 	MemoryLimit    int64    // лимит памяти в байтах (0 = не задан)
@@ -27,8 +26,7 @@ type ContainerData struct {
 	MaxRetry       int      // макс. число перезапусков
 }
 
-// CollectContainer инспектирует один контейнер (по ID или имени)
-// и возвращает заполненную структуру ContainerData.
+// CollectContainer инспектирует один контейнер (по ID или имени) и возвращает заполненную структуру ContainerData.
 func CollectContainer(ctx context.Context, cli *client.Client, ref string) (ContainerData, error) {
 	result, err := cli.ContainerInspect(ctx, ref, client.ContainerInspectOptions{})
 	if err != nil {
@@ -36,7 +34,6 @@ func CollectContainer(ctx context.Context, cli *client.Client, ref string) (Cont
 	}
 
 	// Данные контейнера лежат в поле result.Container
-	// (по аналогии с NetworkInspectResult.Network, VolumeInspectResult.Volume)
 	c := result.Container
 
 	data := ContainerData{
@@ -45,7 +42,7 @@ func CollectContainer(ctx context.Context, cli *client.Client, ref string) (Cont
 		Image: c.Image,
 	}
 
-	// HostConfig — указатель, может быть nil; проверяем.
+	// HostConfig — указатель, может быть nil, проверяем
 	hc := c.HostConfig
 	if hc != nil {
 		data.Privileged = hc.Privileged

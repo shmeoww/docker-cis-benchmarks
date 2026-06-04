@@ -7,9 +7,9 @@ import (
 	"github.com/shmeoww/docker-cis-benchmarks/scanner/internal/model"
 )
 
-// ─── Вспомогательные функции ─────────────────────────────────────────────────
+//Вспомогательные функции
 
-// getImageCheck ищет проверку образа по ID; останавливает тест если не найдена.
+// getImageCheck ищет проверку образа по ID, останавливает тест если не найдена
 func getImageCheck(t *testing.T, id string) ImageCheck {
 	t.Helper()
 	for _, c := range ImageChecks {
@@ -21,7 +21,7 @@ func getImageCheck(t *testing.T, id string) ImageCheck {
 	return ImageCheck{}
 }
 
-// getContainerCheck ищет проверку контейнера по ID.
+// getContainerCheck ищет проверку контейнера по ID
 func getContainerCheck(t *testing.T, id string) ContainerCheck {
 	t.Helper()
 	for _, c := range ContainerChecks {
@@ -33,7 +33,7 @@ func getContainerCheck(t *testing.T, id string) ContainerCheck {
 	return ContainerCheck{}
 }
 
-// assertStatus — вспомогательный assert с подробным выводом при ошибке.
+// assertStatus — вспомогательный assert с подробным выводом при ошибке
 func assertStatus(t *testing.T, result model.CheckResult, want model.Status) {
 	t.Helper()
 	if result.Status != want {
@@ -42,7 +42,7 @@ func assertStatus(t *testing.T, result model.CheckResult, want model.Status) {
 	}
 }
 
-// ─── Тесты проверок образов ───────────────────────────────────────────────────
+// Тесты проверок образов
 
 func TestImageNoRootUser(t *testing.T) {
 	c := getImageCheck(t, "image_no_root_user")
@@ -167,7 +167,7 @@ func TestImageNoPrivilegedPorts(t *testing.T) {
 	}
 }
 
-// ─── Тесты проверок контейнеров ───────────────────────────────────────────────
+// Тесты проверок контейнеров
 
 func TestContainerNoPrivileged(t *testing.T) {
 	c := getContainerCheck(t, "container_no_privileged")
@@ -286,8 +286,6 @@ func TestContainerSeccompAppArmor(t *testing.T) {
 		})
 	}
 }
-
-// Тесты для 8 оставшихся проверок контейнера.
  
 func TestContainerRestrictedCapabilities(t *testing.T) {
 	c := getContainerCheck(t, "container_restricted_capabilities")

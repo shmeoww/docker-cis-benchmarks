@@ -2,13 +2,12 @@ package model
 
 import "time"
 
-// Status — результат одной проверки.
 type Status string
 
 const (
 	StatusPass  Status = "pass"  // проверка пройдена
 	StatusFail  Status = "fail"  // проверка провалена
-	StatusWarn  Status = "warn"  // мягкое замечание (best-practice)
+	StatusWarn  Status = "warn"  // замечание
 	StatusError Status = "error" // не удалось выполнить проверку
 )
 
@@ -22,16 +21,16 @@ const (
 	SeverityLow      Severity = "low"
 )
 
-// CheckResult — результат одной CIS-проверки (контракт данных из п. 1.1).
+// CheckResult — результат одной CIS-проверки
 // JSON-теги задают имена полей в выходном JSON.
 type CheckResult struct {
-	ID           string   `json:"id"`                       // внутренний слаг, напр. "container_no_privileged"
-	Title        string   `json:"title"`                    // человекочитаемое название
+	ID           string   `json:"id"`                       
+	Title        string   `json:"title"`                    
 	Category     string   `json:"category"`                 // "image" или "container"
-	CISReference string   `json:"cis_reference,omitempty"`  // напр. "5.4"; пусто для best-practice
+	CISReference string   `json:"cis_reference,omitempty"`  
 	Severity     Severity `json:"severity"`
 	Status       Status   `json:"status"`
-	Details      string   `json:"details"`      // конкретное доказательство ("HostConfig.Privileged = true")
+	Details      string   `json:"details"`      
 	Remediation  string   `json:"remediation"`  // как исправить
 }
 
@@ -52,7 +51,7 @@ type Summary struct {
 	BySeverity map[string]int `json:"by_severity"` // число провалов по уровням опасности
 }
 
-// ScanReport — полный отчёт об одном скане (контракт данных из п. 1.1).
+// ScanReport — полный отчёт об одном скане
 type ScanReport struct {
 	ScannerVersion string        `json:"scanner_version"`
 	ScannedAt      time.Time     `json:"scanned_at"`
@@ -61,8 +60,7 @@ type ScanReport struct {
 	Checks         []CheckResult `json:"checks"`
 }
 
-// ComputeSummary подсчитывает сводку по списку результатов
-// и возвращает заполненный Summary.
+// ComputeSummary подсчитывает сводку по списку результатов и возвращает заполненный Summary
 func ComputeSummary(checks []CheckResult) Summary {
 	s := Summary{
 		Total:      len(checks),

@@ -8,7 +8,7 @@ import (
 	"github.com/shmeoww/docker-cis-benchmarks/scanner/internal/model"
 )
 
-// ContainerChecks — список всех CIS-проверок для запущенных контейнеров (раздел 5).
+// ContainerChecks — список всех CIS-проверок для запущенных контейнеров
 var ContainerChecks = []ContainerCheck{
 
 	// Проверка 7 (CIS 5.4): не привилегированный режим

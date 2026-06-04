@@ -8,7 +8,7 @@ import (
 	"github.com/shmeoww/docker-cis-benchmarks/scanner/internal/model"
 )
 
-// ImageChecks — список всех CIS-проверок для Docker-образов (раздел 4 бенчмарка).
+// ImageChecks — список всех CIS-проверок для Docker-образов
 var ImageChecks = []ImageCheck{
 
 	// Проверка 1 (CIS 4.1): образ не запускается от root

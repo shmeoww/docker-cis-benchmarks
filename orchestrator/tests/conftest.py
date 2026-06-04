@@ -14,7 +14,7 @@ from models import (
 )
 
 
-# ─── Моковые CIS-проверки ─────────────────────────────────────────────────────
+# Моковые CIS-проверки
 
 @pytest.fixture
 def mock_checks():
@@ -96,7 +96,7 @@ def mock_unified_report(mock_scan_report, mock_vulnerabilities, mock_vuln_summar
     )
 
 
-# ─── FastAPI TestClient ───────────────────────────────────────────────────────
+# FastAPI TestClient
 
 @pytest.fixture
 def client():
@@ -109,7 +109,7 @@ def client():
     return TestClient(app, raise_server_exceptions=False)
 
 
-# ─── Маркер для интеграционных тестов ────────────────────────────────────────
+# Маркер для интеграционных тестов
 
 @pytest.fixture
 def require_go_service():

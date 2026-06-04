@@ -15,7 +15,7 @@ import (
 	"github.com/shmeoww/docker-cis-benchmarks/scanner/internal/model"
 )
 
-// testSetup создаёт роутер + клиент для тестов, пропускает если Docker недоступен.
+// testSetup создаёт роутер + клиент для тестов, пропускает, если Docker недоступен
 func testSetup(t *testing.T) (*gin.Engine, *client.Client) {
 	t.Helper()
 	gin.SetMode(gin.TestMode) // убирает лишний вывод в тестах
@@ -27,7 +27,7 @@ func testSetup(t *testing.T) (*gin.Engine, *client.Client) {
 	return setupRouter(cli), cli
 }
 
-// TestHealthEndpoint: GET /health → 200 + правильное тело
+// TestHealthEndpoint: GET /health: 200 + правильное тело
 func TestHealthEndpoint(t *testing.T) {
 	r, _ := testSetup(t)
 
@@ -48,7 +48,7 @@ func TestHealthEndpoint(t *testing.T) {
 	}
 }
 
-// TestScanImageBadRequest: POST без поля image → 400
+// TestScanImageBadRequest: POST без поля image: 400
 func TestScanImageBadRequest(t *testing.T) {
 	r, _ := testSetup(t)
 
@@ -63,7 +63,7 @@ func TestScanImageBadRequest(t *testing.T) {
 	}
 }
 
-// TestScanImageEndpoint: POST /scan/image с реальным образом → 200 + ScanReport
+// TestScanImageEndpoint: POST /scan/image с реальным образом: 200 + ScanReport
 func TestScanImageEndpoint(t *testing.T) {
 	r, _ := testSetup(t)
 
@@ -88,7 +88,7 @@ func TestScanImageEndpoint(t *testing.T) {
 	}
 }
 
-// TestScanContainerBadRequest: POST без поля container → 400
+// TestScanContainerBadRequest: POST без поля container: 400
 func TestScanContainerBadRequest(t *testing.T) {
 	r, _ := testSetup(t)
 
@@ -103,7 +103,7 @@ func TestScanContainerBadRequest(t *testing.T) {
 	}
 }
 
-// TestScanContainerEndpoint: POST /scan/container с реальным контейнером → 200
+// TestScanContainerEndpoint: POST /scan/container с реальным контейнером: 200
 func TestScanContainerEndpoint(t *testing.T) {
 	r, cli := testSetup(t)
 
@@ -130,7 +130,7 @@ func TestScanContainerEndpoint(t *testing.T) {
 	}
 }
 
-// TestScanAllEndpoint: POST /scan/all → 200 + поле scans
+// TestScanAllEndpoint: POST /scan/all: 200 + поле scans
 func TestScanAllEndpoint(t *testing.T) {
 	r, _ := testSetup(t)
 
