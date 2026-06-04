@@ -39,7 +39,7 @@ func TestScanImage(t *testing.T) {
 	if report.Summary.Total != len(ImageChecks) {
 		t.Errorf("Summary.Total: got %d, want %d", report.Summary.Total, len(ImageChecks))
 	}
-	// mysql:8.0 запускается от root — ожидаем fail для этой проверки
+
 	for _, c := range report.Checks {
 		if c.ID == "image_no_root_user" && c.Status != model.StatusFail {
 			t.Errorf("mysql:8.0 должен провалить image_no_root_user, got %s", c.Status)
@@ -106,7 +106,7 @@ func TestScanAll(t *testing.T) {
 	t.Logf("Всего просканировано: %d целей", len(reports))
 }
 
-// Тесты error-путей в engine.go (строчки: return model.ScanReport{}, err)
+// Тесты error-путей
  
 func TestScanImageError(t *testing.T) {
 	if testing.Short() {
@@ -118,7 +118,7 @@ func TestScanImageError(t *testing.T) {
 	}
 	defer cli.Close()
  
-	// Несуществующий образ → Docker вернёт ошибку → ScanImage должна её вернуть
+	// Несуществующий образ, Docker вернёт ошибку, ScanImage должна её вернуть
 	_, err = ScanImage(context.Background(), cli, "nonexistent_image_xyz:v999999")
 	if err == nil {
 		t.Error("ожидалась ошибка для несуществующего образа, получили nil")
@@ -135,7 +135,7 @@ func TestScanContainerError(t *testing.T) {
 	}
 	defer cli.Close()
  
-	// Несуществующий контейнер → Docker вернёт ошибку
+	// Несуществующий контейнер, Docker вернёт ошибку
 	_, err = ScanContainer(context.Background(), cli, "nonexistent_container_xyz_99999")
 	if err == nil {
 		t.Error("ожидалась ошибка для несуществующего контейнера, получили nil")

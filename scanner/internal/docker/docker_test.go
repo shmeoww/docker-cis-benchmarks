@@ -35,12 +35,12 @@ func TestCollectImage(t *testing.T) {
 		t.Error("Tags не должны быть пустыми для именованного образа")
 	}
 	// nats — не запускается от root по умолчанию
-	// Просто проверяем, что поле заполнено (не паникует)
+	// Просто проверяем, что поле заполнено
 	t.Logf("User: %q, HasHealthcheck: %v, Ports: %v",
 		data.User, data.HasHealthcheck, data.ExposedPorts)
 }
 
-// TestCollectContainer — интеграционный тест для сбора данных контейнера.
+// TestCollectContainer — интеграционный тест для сбора данных контейнера
 func TestCollectContainer(t *testing.T) {
 	if testing.Short() {
 		t.Skip("интеграционный тест — требует запущенный Docker")

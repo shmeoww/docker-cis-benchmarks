@@ -1,5 +1,5 @@
 """
-Pydantic-модели — Python-представление контракта данных из п. 1.1.
+Pydantic-модели — Python-представление контракта данных
 Зеркало Go-типов из internal/model/types.go.
 """
 from __future__ import annotations
@@ -9,10 +9,10 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
-# ─── Перечисления ────────────────────────────────────────────────────────────
+# Перечисления
 
 class Status(str, Enum):
-    """Результат одной CIS-проверки."""
+    """Результат одной CIS-проверки"""
     PASS  = "pass"
     FAIL  = "fail"
     WARN  = "warn"
@@ -20,17 +20,17 @@ class Status(str, Enum):
 
 
 class Severity(str, Enum):
-    """Уровень опасности если проверка провалена."""
+    """Уровень опасности, если проверка провалена"""
     CRITICAL = "critical"
     HIGH     = "high"
     MEDIUM   = "medium"
     LOW      = "low"
 
 
-# ─── CIS-проверки (от Go-сервиса) ────────────────────────────────────────────
+# CIS-проверки (от Go-сервиса)
 
 class CheckResult(BaseModel):
-    """Результат одной CIS-проверки — зеркало Go-типа model.CheckResult."""
+    """Результат одной CIS-проверки — зеркало Go-типа model.CheckResult"""
     id:            str
     title:         str
     category:      str                   # "image" или "container"
@@ -42,24 +42,24 @@ class CheckResult(BaseModel):
 
 
 class Target(BaseModel):
-    """Что сканировали."""
+    """Что сканировали"""
     type: str   # "image" или "container"
     id:   str
     name: str
 
 
 class Summary(BaseModel):
-    """Сводка по результатам скана."""
+    """Сводка по результатам скана"""
     total:       int
     passed:      int
     failed:      int
     warned:      int
-    score:       int                    # passed / total * 100
+    score:       int  # passed / total * 100
     by_severity: dict[str, int] = Field(default_factory=dict)
 
 
 class ScanReport(BaseModel):
-    """Полный отчёт от Go-сервиса — зеркало model.ScanReport."""
+    """Полный отчёт от Go-сервиса — зеркало model.ScanReport"""
     scanner_version: str
     scanned_at:      datetime
     target:          Target
@@ -67,10 +67,10 @@ class ScanReport(BaseModel):
     checks:          list[CheckResult]
 
 
-# ─── Уязвимости (от Trivy) ───────────────────────────────────────────────────
+# Уязвимости (от Trivy)
 
 class Vulnerability(BaseModel):
-    """Одна CVE-уязвимость из вывода Trivy."""
+    """Одна CVE-уязвимость из вывода Trivy"""
     cve:               str
     package:           str
     severity:          str
@@ -80,7 +80,7 @@ class Vulnerability(BaseModel):
 
 
 class VulnSummary(BaseModel):
-    """Количество уязвимостей по уровням серьёзности."""
+    """Количество уязвимостей по уровням серьёзности"""
     critical: int = 0
     high:     int = 0
     medium:   int = 0
@@ -88,12 +88,12 @@ class VulnSummary(BaseModel):
     unknown:  int = 0
 
 
-# ─── Объединённый отчёт оркестратора ─────────────────────────────────────────
+# Объединённый отчёт оркестратора
 
 class UnifiedReport(BaseModel):
     """
-    Финальный отчёт: CIS-проверки (от Go) + CVE-уязвимости (от Trivy).
-    Именно это возвращает FastAPI клиентам и дашборду.
+    Финальный отчёт: CIS-проверки (от Go) + CVE-уязвимости (от Trivy)
+    Именно это возвращает FastAPI клиентам и дашборду
     """
     scan_id:         str
     scanned_at:      datetime
@@ -104,17 +104,17 @@ class UnifiedReport(BaseModel):
     cis_summary:     Summary              # дублируем для удобства дашборда
 
 
-# ─── Модели запросов FastAPI ──────────────────────────────────────────────────
+# Модели запросов FastAPI
 
 class ScanRequest(BaseModel):
-    """Тело запроса POST /scan."""
+    """Тело запроса POST /scan"""
     target_type: str    # "image" или "container"
     target:      str    # имя образа или ID контейнера
     with_cve:    bool = True  # нужно ли запускать Trivy
 
 
 class ScanListItem(BaseModel):
-    """Краткая запись в истории сканов (для GET /scans)."""
+    """Краткая запись в истории сканов (для GET /scans)"""
     scan_id:    str
     target:     Target
     scanned_at: datetime

@@ -1,7 +1,6 @@
 """
 FastAPI-оркестратор: принимает задания на скан, координирует
-Go-сервис (CIS-проверки) и Trivy (CVE), возвращает UnifiedReport.
-
+Go-сервис (CIS-проверки) и Trivy (CVE), возвращает UnifiedReport
 Запуск: uvicorn main:app --reload --port 8080
 Документация: http://localhost:8080/docs
 """
@@ -16,7 +15,7 @@ from scanner_client import ScannerClient
 from merger import orchestrate_image_scan, orchestrate_container_scan
 from report import save_html_report
 
-# ── FastAPI-приложение ──────────────────────────────────────────────────────
+# FastAPI-приложение
 app = FastAPI(
     title="Docker CIS Scanner",
     version="0.1.0",
@@ -27,17 +26,16 @@ app = FastAPI(
     ),
 )
 
-# ── Глобальные объекты ──────────────────────────────────────────────────────
+# Глобальные объекты
 # Клиент к Go-сервису — создаётся один раз при старте.
 # URL берётся из переменной окружения SCANNER_URL (по умолчанию localhost:8000).
 scanner = ScannerClient()
 
-# История сканов в памяти: scan_id → UnifiedReport.
-# Сбрасывается при перезапуске сервера (для persistence нужна БД — за рамками проекта).
+# История сканов в памяти: scan_id - UnifiedReport. Сбрасывается при перезапуске сервера
 _results: dict[str, UnifiedReport] = {}
 
 
-# ── Служебные эндпоинты ──────────────────────────────────────────────────────
+# Служебные эндпоинты
 
 @app.get("/health", tags=["Служебные"])
 def health():
@@ -48,19 +46,19 @@ def health():
     }
 
 
-# ── Сканирование ─────────────────────────────────────────────────────────────
+# Сканирование
 
 @app.post("/scan", response_model=UnifiedReport, tags=["Сканирование"])
 def scan(request: ScanRequest):
     """
     Запустить полный скан цели.
 
-    - **target_type**: `image` или `container`
-    - **target**: имя образа (`mysql:8.0`) или имя/ID контейнера
-    - **with_cve**: запускать CVE-скан через Trivy (по умолчанию `true`)
+    - **target_type**: "image" или "container"
+    - **target**: имя образа ("mysql:8.0") или имя/ID контейнера
+    - **with_cve**: запускать CVE-скан через Trivy (по умолчанию "true")
 
-    Возвращает UnifiedReport: CIS-проверки + CVE-уязвимости.
-    Отчёт сохраняется в `reports/` и доступен через `GET /report/{scan_id}`.
+    Возвращает UnifiedReport: CIS-проверки + CVE-уязвимости
+    Отчёт сохраняется в "reports/" и доступен через "GET /report/{scan_id}".
     """
     try:
         if request.target_type == "image":
@@ -77,7 +75,7 @@ def scan(request: ScanRequest):
                 detail="target_type должен быть 'image' или 'container'",
             )
     except HTTPException:
-        raise  # HTTPException (400, 404 и т.д.) передаём как есть
+        raise  # HTTPException (400, 404 и т.д.)
     except req_lib.ConnectionError:
         raise HTTPException(
             status_code=503,
@@ -87,15 +85,15 @@ def scan(request: ScanRequest):
         raise HTTPException(status_code=500, detail=str(exc))
 
     _results[report.scan_id] = report
-    save_html_report(report)   # HTML-отчёт сохраняется в reports/
+    save_html_report(report)
     return report
 
 
-# ── История сканов ────────────────────────────────────────────────────────────
+# История сканов
 
 @app.get("/scans", response_model=list[ScanListItem], tags=["История"])
 def list_scans():
-    """Список всех выполненных сканов (краткая информация)."""
+    """Список всех выполненных сканов (краткая информация)"""
     return [
         ScanListItem(
             scan_id=r.scan_id,
@@ -110,7 +108,7 @@ def list_scans():
 
 @app.get("/scans/{scan_id}", response_model=UnifiedReport, tags=["История"])
 def get_scan(scan_id: str):
-    """Полный UnifiedReport по ID скана."""
+    """Полный UnifiedReport по ID скана"""
     report = _results.get(scan_id)
     if not report:
         raise HTTPException(
@@ -119,7 +117,7 @@ def get_scan(scan_id: str):
     return report
 
 
-# ── HTML-отчёты ───────────────────────────────────────────────────────────────
+# HTML-отчёты
 
 @app.get("/report/{scan_id}", tags=["Отчёты"])
 def get_html_report(scan_id: str):
@@ -132,8 +130,6 @@ def get_html_report(scan_id: str):
     path = save_html_report(report)
     return FileResponse(path, media_type="text/html")
 
-
-# ── Точка входа (для запуска как скрипта) ────────────────────────────────────
 
 if __name__ == "__main__":
     import uvicorn

@@ -2,15 +2,14 @@ package docker
 
 import (
 	"context"
-
+	
 	"github.com/moby/moby/client"
 )
 
-// ImageData — нормализованные данные одного образа,
-// только то, что нужно нашим CIS-проверкам.
+// ImageData — нормализованные данные одного образа, только то, что нужно CIS-проверкам.
 type ImageData struct {
 	ID             string   // полный ID образа
-	Tags           []string // имена/теги, напр. ["mysql:8.0"]
+	Tags           []string // имена/теги, например ["mysql:8.0"]
 	User           string   // инструкция USER (пустая строка = запуск от root)
 	HasHealthcheck bool     // задан ли HEALTHCHECK
 	ExposedPorts   []string // открытые порты, напр. ["3306/tcp"]
@@ -18,8 +17,7 @@ type ImageData struct {
 	History        []string // строки инструкций сборки (для поиска ADD/COPY)
 }
 
-// CollectImage инспектирует один образ по ссылке (имя:тег или ID)
-// и возвращает заполненную структуру ImageData.
+// CollectImage инспектирует один образ по ссылке (имя:тег или ID) и возвращает заполненную структуру ImageData.
 func CollectImage(ctx context.Context, cli *client.Client, ref string) (ImageData, error) {
 	// Запрашиваем подробную информацию об образе.
 	inspect, err := cli.ImageInspect(ctx, ref)

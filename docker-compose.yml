@@ -1,0 +1,53 @@
+# Docker Compose — поднимает все три сервиса одной командой: docker compose up --build
+# Сервисы общаются по имени (scanner, orchestrator) внутри сети cis-net
+
+services:
+
+  scanner:
+    build: ./scanner
+    ports:
+      - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - cis-net
+    restart: unless-stopped
+
+  orchestrator:
+    build:
+      context: .                         
+      dockerfile: orchestrator/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SCANNER_URL=http://scanner:8000
+    volumes:
+      - ./orchestrator/reports:/app/reports
+    depends_on:
+      - scanner
+    networks:
+      - cis-net
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: orchestrator/Dockerfile
+    command: >
+      streamlit run dashboard.py
+      --server.port 8501
+      --server.address 0.0.0.0
+    ports:
+      - "8501:8501"
+    environment:
+      - ORCHESTRATOR_URL=http://orchestrator:8080
+      - PUBLIC_ORCHESTRATOR_URL=http://localhost:8080
+    depends_on:
+      - orchestrator
+    networks:
+      - cis-net
+    restart: unless-stopped
+
+networks:
+  cis-net:
+    driver: bridge

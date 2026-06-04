@@ -9,13 +9,13 @@ import pytest
 from unittest.mock import patch
 
 
-# ─── Вспомогательная функция ──────────────────────────────────────────────────
+# Вспомогательная функция
 
 def _scan_payload(target_type="image", target="mysql:8.0", with_cve=False):
     return {"target_type": target_type, "target": target, "with_cve": with_cve}
 
 
-# ─── GET /health ──────────────────────────────────────────────────────────────
+# GET /health
 
 class TestHealth:
 
@@ -32,7 +32,7 @@ class TestHealth:
         assert "go_scanner" in resp.json()
 
 
-# ─── POST /scan — валидация ───────────────────────────────────────────────────
+# POST /scan — валидация
 
 class TestScanValidation:
 
@@ -57,7 +57,7 @@ class TestScanValidation:
         assert resp.status_code == 422
 
 
-# ─── POST /scan — успешный скан (mock) ───────────────────────────────────────
+# POST /scan — успешный скан (mock)
 
 class TestScanWithMock:
 
@@ -94,7 +94,7 @@ class TestScanWithMock:
         mock_orch.assert_called_once()
 
 
-# ─── GET /scans ───────────────────────────────────────────────────────────────
+# GET /scans
 
 class TestListScans:
 
@@ -115,7 +115,7 @@ class TestListScans:
         assert mock_unified_report.scan_id in ids
 
 
-# ─── GET /scans/{id} ──────────────────────────────────────────────────────────
+# GET /scans/{id}
 
 class TestGetScan:
 
@@ -130,7 +130,7 @@ class TestGetScan:
         assert resp.status_code == 200
 
 
-# ─── GET /report/{id} ────────────────────────────────────────────────────────
+# GET /report/{id}
 
 class TestGetReport:
 
@@ -147,7 +147,7 @@ class TestGetReport:
         assert b"<!DOCTYPE html>" in resp.content
 
 
-# ─── Интеграционные тесты (требуют Go-сервис) ─────────────────────────────────
+# Интеграционные тесты (требуют Go-сервис)
 
 class TestIntegration:
 

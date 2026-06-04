@@ -1,33 +1,33 @@
 """
-Streamlit-дашборд для Docker CIS Scanner.
+Streamlit-дашборд для Docker CIS Scanner
 Запуск: streamlit run dashboard.py --server.port 8501
-Требует: Go-сервис (:8000) и FastAPI-оркестратор (:8080).
+Требует: Go-сервис (:8000) и FastAPI-оркестратор (:8080)
 """
 import os
 import requests
 import streamlit as st
 
 ORCHESTRATOR_URL = os.environ.get("ORCHESTRATOR_URL", "http://localhost:8080")
+PUBLIC_ORCHESTRATOR_URL = os.environ.get("PUBLIC_ORCHESTRATOR_URL", ORCHESTRATOR_URL)
 
-# ── Конфигурация страницы (ПЕРВАЯ команда Streamlit) ──────────────────────
 st.set_page_config(
     page_title="Docker CIS Scanner",
-    page_icon="🔒",
+    page_icon=None,
     layout="wide",
 )
 
 STATUS_ICON = {
-    "pass": "✅ PASS", "fail": "❌ FAIL",
-    "warn": "⚠️ WARN", "error": "🔴 ERROR",
+    "pass": "PASS", "fail": "FAIL",
+    "warn": "WARN", "error": "ERROR",
 }
 SEVERITY_ICON = {
-    "critical": "🔴 CRITICAL", "high": "🟠 HIGH",
-    "medium": "🟡 MEDIUM",    "low":  "🔵 LOW",
+    "critical": "CRITICAL", "high": "HIGH",
+    "medium":   "MEDIUM",   "low":  "LOW",
 }
 STATUS_ORDER = {"fail": 0, "warn": 1, "pass": 2, "error": 3}
 
 
-# ── Вспомогательные функции ─────────────────────────────────────────────────
+# Вспомогательные функции
 
 @st.cache_data(ttl=10)
 def fetch_health() -> dict:
@@ -58,14 +58,13 @@ def show_history():
         c3.write(f"CVE: **{s['cve_count']}**")
         c4.link_button(
             "HTML-отчёт",
-            f"{ORCHESTRATOR_URL}/report/{s['scan_id']}",
-            use_container_width=True,
+            f"{PUBLIC_ORCHESTRATOR_URL}/report/{s['scan_id']}",
         )
 
 
-# ── Заголовок и статус ──────────────────────────────────────────────────────
+# Заголовок и статус
 
-st.title("🔒 Docker CIS Scanner")
+st.title("Docker CIS Scanner")
 st.caption("Анализ безопасности Docker-образов · CIS Benchmarks + CVE (Trivy)")
 
 health = fetch_health()
@@ -75,26 +74,26 @@ if health.get("status") != "ok":
 elif health.get("go_scanner") == "offline":
     st.warning("Go-сервис недоступен. Запусти: `cd scanner && go run .`")
 
-# ── Боковая панель ───────────────────────────────────────────────────────────
+# Боковая панель
 
 with st.sidebar:
-    st.header("🔍 Новый скан")
+    st.header("Новый скан")
     target_type = st.selectbox("Тип цели", ["image", "container"])
     default = "mysql:8.0" if target_type == "image" else "nats"
     target = st.text_input("Имя образа или контейнера", value=default)
     with_cve = st.checkbox("CVE-скан (Trivy)", value=True)
-    scan_btn = st.button("Запустить скан", type="primary", use_container_width=True)
+    scan_btn = st.button("Запустить скан", type="primary")
     st.divider()
     st.caption(f"Оркестратор: {ORCHESTRATOR_URL}")
 
-# ── Инициализация session_state ──────────────────────────────────────────────
+# Инициализация session_state
 
 if "report" not in st.session_state:
     st.session_state.report = None
 if "scan_error" not in st.session_state:
     st.session_state.scan_error = None
 
-# ── Запуск скана ─────────────────────────────────────────────────────────────
+# Запуск скана
 
 if scan_btn and target:
     st.session_state.scan_error = None
@@ -115,7 +114,7 @@ if scan_btn and target:
 if st.session_state.scan_error:
     st.error(f"Ошибка: {st.session_state.scan_error}")
 
-# ── Отображение результатов ──────────────────────────────────────────────────
+# Отображение результатов
 
 if st.session_state.report:
     r = st.session_state.report
@@ -123,15 +122,15 @@ if st.session_state.report:
     st.success(f"**{r['target']['type']} — {r['target']['name']}**")
 
     tab_cis, tab_cve, tab_hist = st.tabs(
-        ["📋 CIS-проверки", "🛡️ CVE-уязвимости", "📜 История"]
+        ["CIS-проверки", "CVE-уязвимости", "История"]
     )
 
     with tab_cis:
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("CIS-оценка", f"{cis['score']}/100")
-        col2.metric("✅ Пройдено",       cis["passed"])
-        col3.metric("❌ Провалено",      cis["failed"])
-        col4.metric("⚠️ Предупреждений", cis["warned"])
+        col2.metric("Пройдено",       cis["passed"])
+        col3.metric("Провалено",      cis["failed"])
+        col4.metric("Предупреждений", cis["warned"])
         st.divider()
 
         checks = sorted(r["cis_report"]["checks"],
@@ -144,9 +143,24 @@ if st.session_state.report:
             "Детали":       c["details"],
             "Рекомендация": c["remediation"] if c["status"] in ("fail", "warn") else "",
         } for c in checks]
-        st.dataframe(rows, use_container_width=True, height=380)
-        st.link_button("📄 Открыть HTML-отчёт",
-                       f"{ORCHESTRATOR_URL}/report/{r['scan_id']}")
+        st.dataframe(rows, height=380)
+
+        btn_col1, btn_col2 = st.columns([1, 1])
+        btn_col1.link_button("Открыть HTML-отчёт",
+                             f"{PUBLIC_ORCHESTRATOR_URL}/report/{r['scan_id']}")
+        try:
+            html_bytes = requests.get(
+                f"{ORCHESTRATOR_URL}/report/{r['scan_id']}", timeout=10
+            ).content
+            safe_name = r["target"]["name"].replace(":", "_").replace("/", "_")
+            btn_col2.download_button(
+                label="Скачать HTML-отчёт",
+                data=html_bytes,
+                file_name=f"report_{safe_name}.html",
+                mime="text/html",
+            )
+        except Exception:
+            pass
 
     with tab_cve:
         vs = r["vuln_summary"]
@@ -155,10 +169,10 @@ if st.session_state.report:
             st.info("CVE-уязвимостей не обнаружено.")
         else:
             vc1, vc2, vc3, vc4 = st.columns(4)
-            vc1.metric("🔴 Critical", vs["critical"])
-            vc2.metric("🟠 High",     vs["high"])
-            vc3.metric("🟡 Medium",   vs["medium"])
-            vc4.metric("🔵 Low",      vs["low"])
+            vc1.metric("Critical", vs["critical"])
+            vc2.metric("High",     vs["high"])
+            vc3.metric("Medium",   vs["medium"])
+            vc4.metric("Low",      vs["low"])
             st.divider()
             vuln_rows = [{
                 "CVE":          v["cve"],
@@ -167,11 +181,11 @@ if st.session_state.report:
                 "Исправлено в": v.get("fixed_version") or "—",
                 "Серьёзность":  SEVERITY_ICON.get(v["severity"], v["severity"]),
             } for v in vulns]
-            st.dataframe(vuln_rows, use_container_width=True, height=380)
+            st.dataframe(vuln_rows, height=380)
 
     with tab_hist:
         show_history()
 
 else:
-    st.info("👈 Введи имя образа в боковой панели и нажми «Запустить скан»")
+    st.info("Введи имя образа в боковой панели и нажми «Запустить скан»")
     show_history()

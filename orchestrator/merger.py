@@ -1,8 +1,8 @@
 """
 Оркестрация и слияние результатов:
-  Go-сервис  → CIS-проверки (ScanReport)
-  Trivy      → CVE-уязвимости
-  Merger     → единый UnifiedReport
+  Go-сервис: CIS-проверки (ScanReport)
+  Trivy: CVE-уязвимости
+  Merger: единый UnifiedReport
 """
 import uuid
 from datetime import datetime, timezone
@@ -19,8 +19,7 @@ def merge_results(
 ) -> UnifiedReport:
     """
     Чистая функция слияния: не вызывает внешние сервисы,
-    просто собирает UnifiedReport из готовых данных.
-    Легко тестировать — нет побочных эффектов.
+    просто собирает UnifiedReport из готовых данных
     """
     return UnifiedReport(
         scan_id=str(uuid.uuid4()),          # уникальный ID скана
@@ -29,7 +28,7 @@ def merge_results(
         cis_report=cis_report,
         vulnerabilities=vulnerabilities,
         vuln_summary=vuln_summary,
-        cis_summary=cis_report.summary,     # дублируем для удобства дашборда
+        cis_summary=cis_report.summary,
     )
 
 
@@ -39,8 +38,7 @@ def orchestrate_image_scan(
     with_cve: bool = True,
 ) -> UnifiedReport:
     """
-    Полный скан образа: CIS-проверки + (опционально) CVE.
-    Это «сердце» оркестратора — вызывается из FastAPI-эндпоинта.
+    Полный скан образа: CIS-проверки + (опционально) CVE, вызывается из FastAPI-эндпоинта
     """
     # 1. CIS-проверки через Go-сервис
     cis_report = scanner.scan_image(image)
@@ -61,8 +59,8 @@ def orchestrate_container_scan(
     with_cve: bool = True,
 ) -> UnifiedReport:
     """
-    Полный скан контейнера: CIS-проверки + (опционально) CVE по образу.
-    Для CVE используем образ контейнера — именно он содержит пакеты.
+    Полный скан контейнера: CIS-проверки + (опционально) CVE по образу
+    Для CVE используем образ контейнера — именно он содержит пакеты
     """
     cis_report = scanner.scan_container(container_id)
 

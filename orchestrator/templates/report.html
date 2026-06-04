@@ -61,15 +61,15 @@
 <body>
 
 <div class="header">
-  <h1>🔒 Docker CIS Scanner Report</h1>
+  <h1> Docker CIS Scanner Report</h1>
   <p>Цель: <strong>{{ report.target.type }} — {{ report.target.name }}</strong></p>
   <p>Дата сканирования: {{ report.scanned_at.strftime('%Y-%m-%d %H:%M UTC') }}</p>
-  <p>ID скана: <code style="color:#aef">{{ report.scan_id }}</code></p>
+  <p>ID скана: {{ report.scan_id }}</p>
 </div>
 
 <div class="container">
 
-  <!-- ── Оценка ──────────────────────────────────────── -->
+  <!--  Оценка  -->
   <div class="card">
     <h2>Итоговая оценка</h2>
     <div class="stats">
@@ -110,7 +110,7 @@
     </div>
   </div>
 
-  <!-- ── CIS-проверки ──────────────────────────────── -->
+  <!-- CIS-проверки -->
   <div class="card">
     <h2>CIS-проверки ({{ report.cis_report.checks | length }})</h2>
     <table>
@@ -126,14 +126,14 @@
       <tbody>
         {% for check in report.cis_report.checks | sort(attribute='status') %}
         <tr>
-          <td><span class="badge badge-{{ check.status }}">{{ check.status | upper }}</span></td>
+          <td><span class="badge badge-{{ check.status.value }}">{{ check.status.value | upper }}</span></td>
           <td>{{ check.title }}</td>
           <td>{{ check.cis_reference or '—' }}</td>
-          <td><span class="badge badge-{{ check.severity }}">{{ check.severity | upper }}</span></td>
+          <td><span class="badge badge-{{ check.severity.value }}">{{ check.severity.value | upper }}</span></td>
           <td>
             {{ check.details }}
-            {% if check.status in ['fail', 'warn'] and check.remediation %}
-            <div class="remediation">💡 {{ check.remediation }}</div>
+            {% if check.status.value in ['fail', 'warn'] and check.remediation %}
+            <div class="remediation"> {{ check.remediation }}</div>
             {% endif %}
           </td>
         </tr>
@@ -142,7 +142,7 @@
     </table>
   </div>
 
-  <!-- ── CVE-уязвимости ────────────────────────────── -->
+  <!-- CVE-уязвимости -->
   {% if report.vulnerabilities %}
   <div class="card">
     <h2>CVE-уязвимости ({{ report.vulnerabilities | length }})</h2>

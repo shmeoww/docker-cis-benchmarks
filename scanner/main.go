@@ -11,8 +11,8 @@ import (
 	"github.com/shmeoww/docker-cis-benchmarks/scanner/internal/docker"
 )
 
-// setupRouter создаёт и настраивает Gin-роутер со всеми эндпоинтами.
-// Вынесено отдельно чтобы можно было тестировать без запуска сервера.
+// setupRouter создаёт и настраивает Gin-роутер со всеми эндпоинтами
+// Вынесено отдельно, чтобы можно было тестировать без запуска сервера
 func setupRouter(cli *client.Client) *gin.Engine {
 	r := gin.Default()
 
@@ -24,10 +24,12 @@ func setupRouter(cli *client.Client) *gin.Engine {
 		var req struct {
 			Image string `json:"image" binding:"required"`
 		}
+		// 400 — клиент прислал плохой запрос
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "укажите поле image"})
 			return
 		}
+		// 500 — образ не найден или Docker недоступен
 		report, err := checks.ScanImage(context.Background(), cli, req.Image)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -40,10 +42,12 @@ func setupRouter(cli *client.Client) *gin.Engine {
 		var req struct {
 			Container string `json:"container" binding:"required"`
 		}
+		// 400 — клиент прислал плохой запрос
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "укажите поле container"})
 			return
 		}
+		// 500 — образ не найден или Docker недоступен
 		report, err := checks.ScanContainer(context.Background(), cli, req.Container)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

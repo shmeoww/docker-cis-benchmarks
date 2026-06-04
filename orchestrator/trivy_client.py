@@ -1,6 +1,6 @@
 """
 Клиент к Trivy: запускает trivy image --format json,
-парсит вывод и возвращает список уязвимостей и сводку.
+парсит вывод и возвращает список уязвимостей и сводку
 """
 import json
 import subprocess
@@ -12,10 +12,9 @@ def scan_image_cve(
     timeout: int = 300,
 ) -> tuple[list[Vulnerability], VulnSummary]:
     """
-    Запускает Trivy для поиска CVE-уязвимостей в образе.
-
-    Возвращает (vulnerabilities, summary).
-    Если Trivy недоступен или образ не найден — возвращает пустые результаты
+    Запускает Trivy для поиска CVE-уязвимостей в образе
+    Возвращает (vulnerabilities, summary)
+    Если Trivy недоступен или образ не найден, то возвращает пустые результаты
     (не бросает исключение, чтобы не ломать остальной скан).
     """
     try:
@@ -32,7 +31,6 @@ def scan_image_cve(
             timeout=timeout,
         )
     except FileNotFoundError:
-        # trivy не установлен
         print("[trivy] предупреждение: trivy не найден, CVE-скан пропущен")
         return [], VulnSummary()
     except subprocess.TimeoutExpired:
@@ -50,8 +48,7 @@ def _parse_trivy_output(
     raw_json: str,
 ) -> tuple[list[Vulnerability], VulnSummary]:
     """
-    Разбирает JSON-вывод Trivy и возвращает плоский список уязвимостей
-    и сводку по уровням серьёзности.
+    Разбирает JSON-вывод Trivy и возвращает список уязвимостей и сводку по уровням серьёзности
 
     Структура Trivy JSON:
     {
@@ -89,7 +86,6 @@ def _parse_trivy_output(
             )
             vulns.append(v)
 
-            # Обновляем счётчик сводки
             if severity == "critical":
                 summary.critical += 1
             elif severity == "high":

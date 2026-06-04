@@ -1,0 +1,78 @@
+# Проверяет: тесты, SAST (gosec, bandit), SCA (govulncheck, pip-audit).
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+
+  # Go: тесты + SAST + SCA
+  go-checks:
+    name: Go tests & security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          cache: true
+
+      - name: go mod download
+        working-directory: scanner
+        run: go mod download
+
+      - name: go test (unit, без Docker)
+        working-directory: scanner
+        run: go test -short -v ./...
+
+      - name: gosec — SAST (статический анализ кода Go)
+        working-directory: scanner
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          gosec ./...
+        continue-on-error: true   
+
+      - name: govulncheck — SCA (уязвимости в зависимостях Go)
+        working-directory: scanner
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+        continue-on-error: true
+
+  # Python: тесты + SAST + SCA
+  python-checks:
+    name: Python tests & security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: pip install
+        run: pip install -r requirements.txt
+
+      - name: pytest (unit-тесты, без Go-сервиса)
+        working-directory: orchestrator
+        run: pytest -k "not Integration" -v
+
+      - name: bandit — SAST (статический анализ кода Python)
+        run: |
+          pip install bandit
+          bandit -r orchestrator/ -x orchestrator/tests/ -f txt
+        continue-on-error: true
+
+      - name: pip-audit — SCA (уязвимости в Python-зависимостях)
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt
+        continue-on-error: true

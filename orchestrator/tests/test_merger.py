@@ -8,8 +8,6 @@ from merger import merge_results
 from report import _safe_name
 
 
-# ─── merge_results ────────────────────────────────────────────────────────────
-
 class TestMergeResults:
 
     def test_returns_unified_report(self, mock_scan_report, mock_vulnerabilities, mock_vuln_summary):
@@ -51,8 +49,6 @@ class TestMergeResults:
         assert report.cis_summary.score == mock_scan_report.summary.score
         assert report.cis_summary.total == mock_scan_report.summary.total
 
-
-# ─── _safe_name ───────────────────────────────────────────────────────────────
 
 class TestSafeName:
 
