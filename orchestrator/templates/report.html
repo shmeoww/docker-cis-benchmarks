@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docker CIS Report — {{ report.target.name }}</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 960px;
+    margin: 40px auto;
+    padding: 0 20px;
+    color: #222;
+    background: #fff;
+  }
+
+  h1 { font-size: 1.6rem; margin-bottom: 4px; }
+  h2 { font-size: 1.1rem; margin: 30px 0 10px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+
+  .meta { color: #666; font-size: 0.9rem; margin-bottom: 24px; }
+  .meta span { margin-right: 20px; }
+
+  .score-line {
+    font-size: 1rem;
+    margin: 12px 0 24px;
+    padding: 12px 16px;
+    background: #f8f8f8;
+    border-left: 4px solid #555;
+    border-radius: 4px;
+  }
+  .score-line .num { font-size: 1.6rem; font-weight: bold; margin-right: 6px; }
+  .green { color: #2a7a2a; }
+  .orange { color: #b86a00; }
+  .red { color: #c0392b; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin-bottom: 8px;
+  }
+  th {
+    text-align: left;
+    padding: 8px 10px;
+    background: #f0f0f0;
+    border-bottom: 2px solid #ccc;
+  }
+  td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+  }
+
+  .status-fail { color: #c0392b; font-weight: bold; }
+  .status-pass { color: #2a7a2a; }
+  .status-warn { color: #b86a00; font-weight: bold; }
+
+  .sev-critical { color: #c0392b; }
+  .sev-high     { color: #d35400; }
+  .sev-medium   { color: #b8860b; }
+  .sev-low      { color: #2980b9; }
+
+  .tip {
+    font-size: 0.82rem;
+    color: #555;
+    margin-top: 4px;
+    padding-left: 8px;
+    border-left: 3px solid #ddd;
+  }
+
+  footer { margin-top: 40px; font-size: 0.8rem; color: #aaa; text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>Docker CIS Scanner — Отчёт</h1>
+<div class="meta">
+  <span><strong>Цель:</strong> {{ report.target.type }} / {{ report.target.name }}</span>
+  <span><strong>Дата:</strong> {{ report.scanned_at.strftime('%Y-%m-%d %H:%M UTC') }}</span>
+  <span><strong>ID:</strong> {{ report.scan_id }}</span>
+</div>
+
+<!-- Сводка -->
+<h2>Итог</h2>
+<div class="score-line">
+  {% if report.cis_summary.score >= 70 %}
+  <span class="num green">{{ report.cis_summary.score }}/100</span>
+  {% elif report.cis_summary.score >= 40 %}
+  <span class="num orange">{{ report.cis_summary.score }}/100</span>
+  {% else %}
+  <span class="num red">{{ report.cis_summary.score }}/100</span>
+  {% endif %}
+  Пройдено: {{ report.cis_summary.passed }} &nbsp;·&nbsp;
+  Провалено: {{ report.cis_summary.failed }} &nbsp;·&nbsp;
+  Предупреждений: {{ report.cis_summary.warned }}
+  {% if report.vulnerabilities %}
+  &nbsp;·&nbsp; CVE: {{ report.vulnerabilities | length }}
+  (крит./выс.: {{ report.vuln_summary.critical + report.vuln_summary.high }})
+  {% endif %}
+</div>
+
+<!-- CIS-проверки -->
+<h2>CIS-проверки</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Статус</th>
+      <th>Проверка</th>
+      <th>CIS</th>
+      <th>Серьёзность</th>
+      <th>Детали</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for check in report.cis_report.checks | sort(attribute='status') %}
+    <tr>
+      <td class="status-{{ check.status.value }}">{{ check.status.value | upper }}</td>
+      <td>{{ check.title }}</td>
+      <td>{{ check.cis_reference or '—' }}</td>
+      <td class="sev-{{ check.severity.value }}">{{ check.severity.value | upper }}</td>
+      <td>
+        {{ check.details }}
+        {% if check.status.value in ['fail', 'warn'] and check.remediation %}
+        <div class="tip">{{ check.remediation }}</div>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- CVE -->
+{% if report.vulnerabilities %}
+<h2>CVE-уязвимости ({{ report.vulnerabilities | length }})</h2>
+<table>
+  <thead>
+    <tr>
+      <th>CVE</th>
+      <th>Пакет</th>
+      <th>Версия</th>
+      <th>Исправлено в</th>
+      <th>Серьёзность</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for vuln in report.vulnerabilities | sort(attribute='severity') %}
+    <tr>
+      <td><code>{{ vuln.cve }}</code></td>
+      <td>{{ vuln.package }}</td>
+      <td>{{ vuln.installed_version }}</td>
+      <td>{{ vuln.fixed_version or '—' }}</td>
+      <td class="sev-{{ vuln.severity }}">{{ vuln.severity | upper }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<footer>
+  Docker CIS Scanner v{{ report.cis_report.scanner_version }} · CIS Docker Benchmark v1.8.0
+</footer>
+
+</body>
+</html>

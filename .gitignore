@@ -1,21 +1,41 @@
-# Go
+# ===== Go =====
 scanner/bin/
 *.exe
 *.test
 *.out
+coverage.*
+coverage
+*.prof
 
-# Python
-orchestrator/.venv/
-dashboard/.venv/
+# ===== Python =====
+.venv/
+venv/
+env/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+.coverage 
 
-# Отчёты и артефакты
+# ===== Секреты (НИКОГДА не коммитим) =====
+.env
+*.env
+*.pem
+*.key
+
+# ===== Отчёты и артефакты =====
 *.log
 reports/
+.trivycache/
+orchestrator/data/
 
-# Редакторы / ОС
+# ===== Редакторы и ОС =====
 .idea/
 .vscode/
 .DS_Store
+Thumbs.db
+desktop.ini

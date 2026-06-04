@@ -1,0 +1,17 @@
+# Git и CI
+.git/
+.github/
+
+# Go-сервис не нужен в Python-образе
+scanner/
+
+# Python-артефакты
+orchestrator/.venv/
+orchestrator/__pycache__/
+orchestrator/.pytest_cache/
+orchestrator/reports/
+orchestrator/.coverage
+
+# Прочее
+*.md
+coverage.out
