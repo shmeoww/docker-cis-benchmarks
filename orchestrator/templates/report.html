@@ -5,203 +5,160 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Docker CIS Report — {{ report.target.name }}</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; background: #f0f2f5; color: #333; }
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 960px;
+    margin: 40px auto;
+    padding: 0 20px;
+    color: #222;
+    background: #fff;
+  }
 
-  .header { background: #2c3e50; color: white; padding: 2rem; }
-  .header h1 { font-size: 1.8rem; margin-bottom: .5rem; }
-  .header p  { opacity: .8; font-size: .95rem; margin-top: .25rem; }
+  h1 { font-size: 1.6rem; margin-bottom: 4px; }
+  h2 { font-size: 1.1rem; margin: 30px 0 10px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
 
-  .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+  .meta { color: #666; font-size: 0.9rem; margin-bottom: 24px; }
+  .meta span { margin-right: 20px; }
 
-  .card { background: white; border-radius: 8px; padding: 1.5rem;
-          margin-bottom: 1.5rem; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
-  .card h2 { font-size: 1.2rem; margin-bottom: 1rem;
-             border-bottom: 2px solid #e9ecef; padding-bottom: .5rem; }
+  .score-line {
+    font-size: 1rem;
+    margin: 12px 0 24px;
+    padding: 12px 16px;
+    background: #f8f8f8;
+    border-left: 4px solid #555;
+    border-radius: 4px;
+  }
+  .score-line .num { font-size: 1.6rem; font-weight: bold; margin-right: 6px; }
+  .green { color: #2a7a2a; }
+  .orange { color: #b86a00; }
+  .red { color: #c0392b; }
 
-  /* Оценка */
-  .stats { display: flex; gap: 2rem; flex-wrap: wrap; align-items: center; }
-  .stat  { text-align: center; }
-  .stat-num { font-size: 2.2rem; font-weight: bold; line-height: 1; }
-  .stat-label { font-size: .85rem; color: #6c757d; margin-top: .25rem; }
-  .score-big { font-size: 4.5rem; font-weight: bold; line-height: 1; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin-bottom: 8px;
+  }
+  th {
+    text-align: left;
+    padding: 8px 10px;
+    background: #f0f0f0;
+    border-bottom: 2px solid #ccc;
+  }
+  td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+  }
 
-  /* Цвета оценки — без Jinja2 в атрибутах */
-  .score-green  { color: #28a745; }
-  .score-orange { color: #e67e22; }
-  .score-red    { color: #dc3545; }
+  .status-fail { color: #c0392b; font-weight: bold; }
+  .status-pass { color: #2a7a2a; }
+  .status-warn { color: #b86a00; font-weight: bold; }
 
-  /* Бейджи */
-  .badge { display: inline-block; padding: .2rem .55rem; border-radius: 4px;
-           font-size: .8rem; font-weight: bold; color: white; }
-  .badge-pass     { background: #28a745; }
-  .badge-fail     { background: #dc3545; }
-  .badge-warn     { background: #e67e22; }
-  .badge-error    { background: #6c757d; }
-  .badge-critical { background: #dc3545; }
-  .badge-high     { background: #fd7e14; }
-  .badge-medium   { background: #ffc107; color: #333; }
-  .badge-low      { background: #17a2b8; }
-  .badge-unknown  { background: #6c757d; }
+  .sev-critical { color: #c0392b; }
+  .sev-high     { color: #d35400; }
+  .sev-medium   { color: #b8860b; }
+  .sev-low      { color: #2980b9; }
 
-  /* Таблицы */
-  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
-  th { background: #f8f9fa; text-align: left; padding: .7rem .75rem;
-       border-bottom: 2px solid #dee2e6; white-space: nowrap; }
-  td { padding: .7rem .75rem; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
-  tr:last-child td { border-bottom: none; }
+  .tip {
+    font-size: 0.82rem;
+    color: #555;
+    margin-top: 4px;
+    padding-left: 8px;
+    border-left: 3px solid #ddd;
+  }
 
-  .remediation { font-size: .82rem; color: #856404; background: #fff3cd;
-                 padding: .3rem .5rem; border-radius: 4px; margin-top: .35rem; }
-  code { background: #f0f0f0; padding: .1rem .3rem; border-radius: 3px;
-         font-size: .85rem; }
-  footer { text-align: center; color: #aaa; margin: 2rem 0; font-size: .85rem; }
+  footer { margin-top: 40px; font-size: 0.8rem; color: #aaa; text-align: center; }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <h1> Docker CIS Scanner Report</h1>
-  <p>Цель: <strong>{{ report.target.type }} — {{ report.target.name }}</strong></p>
-  <p>Дата сканирования: {{ report.scanned_at.strftime('%Y-%m-%d %H:%M UTC') }}</p>
-  <p>ID скана: {{ report.scan_id }}</p>
+<h1>Docker CIS Scanner — Отчёт</h1>
+<div class="meta">
+  <span><strong>Цель:</strong> {{ report.target.type }} / {{ report.target.name }}</span>
+  <span><strong>Дата:</strong> {{ report.scanned_at.strftime('%Y-%m-%d %H:%M UTC') }}</span>
+  <span><strong>ID:</strong> {{ report.scan_id }}</span>
 </div>
 
-<div class="container">
-
-  <!--  Оценка  -->
-  <div class="card">
-    <h2>Итоговая оценка</h2>
-    <div class="stats">
-      <div class="stat">
-        {% if report.cis_summary.score >= 70 %}
-        <div class="score-big score-green">
-        {% elif report.cis_summary.score >= 40 %}
-        <div class="score-big score-orange">
-        {% else %}
-        <div class="score-big score-red">
-        {% endif %}
-          {{ report.cis_summary.score }}<small style="font-size:1.5rem; color:#999">/100</small>
-        </div>
-        <div class="stat-label">CIS-оценка</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num" style="color:#28a745">{{ report.cis_summary.passed }}</div>
-        <div class="stat-label">Пройдено</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num" style="color:#dc3545">{{ report.cis_summary.failed }}</div>
-        <div class="stat-label">Провалено</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num" style="color:#e67e22">{{ report.cis_summary.warned }}</div>
-        <div class="stat-label">Предупреждений</div>
-      </div>
-      {% if report.vulnerabilities %}
-      <div class="stat" style="border-left: 2px solid #dee2e6; padding-left: 2rem;">
-        <div class="stat-num" style="color:#dc3545">{{ report.vuln_summary.critical + report.vuln_summary.high }}</div>
-        <div class="stat-label">CVE Крит.+Высоких</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num" style="color:#6c757d">{{ report.vulnerabilities | length }}</div>
-        <div class="stat-label">CVE всего</div>
-      </div>
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- CIS-проверки -->
-  <div class="card">
-    <h2>CIS-проверки ({{ report.cis_report.checks | length }})</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Статус</th>
-          <th>Проверка</th>
-          <th>CIS</th>
-          <th>Серьёзность</th>
-          <th>Детали и рекомендации</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for check in report.cis_report.checks | sort(attribute='status') %}
-        <tr>
-          <td><span class="badge badge-{{ check.status.value }}">{{ check.status.value | upper }}</span></td>
-          <td>{{ check.title }}</td>
-          <td>{{ check.cis_reference or '—' }}</td>
-          <td><span class="badge badge-{{ check.severity.value }}">{{ check.severity.value | upper }}</span></td>
-          <td>
-            {{ check.details }}
-            {% if check.status.value in ['fail', 'warn'] and check.remediation %}
-            <div class="remediation"> {{ check.remediation }}</div>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <!-- CVE-уязвимости -->
-  {% if report.vulnerabilities %}
-  <div class="card">
-    <h2>CVE-уязвимости ({{ report.vulnerabilities | length }})</h2>
-    <div class="stats" style="margin-bottom: 1.2rem;">
-      {% if report.vuln_summary.critical %}
-      <div class="stat">
-        <div class="stat-num" style="color:#dc3545">{{ report.vuln_summary.critical }}</div>
-        <div class="stat-label">Critical</div>
-      </div>
-      {% endif %}
-      {% if report.vuln_summary.high %}
-      <div class="stat">
-        <div class="stat-num" style="color:#fd7e14">{{ report.vuln_summary.high }}</div>
-        <div class="stat-label">High</div>
-      </div>
-      {% endif %}
-      {% if report.vuln_summary.medium %}
-      <div class="stat">
-        <div class="stat-num" style="color:#ffc107">{{ report.vuln_summary.medium }}</div>
-        <div class="stat-label">Medium</div>
-      </div>
-      {% endif %}
-      {% if report.vuln_summary.low %}
-      <div class="stat">
-        <div class="stat-num" style="color:#17a2b8">{{ report.vuln_summary.low }}</div>
-        <div class="stat-label">Low</div>
-      </div>
-      {% endif %}
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th>CVE</th>
-          <th>Пакет</th>
-          <th>Установленная версия</th>
-          <th>Исправлено в</th>
-          <th>Серьёзность</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for vuln in report.vulnerabilities | sort(attribute='severity') %}
-        <tr>
-          <td><code>{{ vuln.cve }}</code></td>
-          <td>{{ vuln.package }}</td>
-          <td>{{ vuln.installed_version }}</td>
-          <td>{{ vuln.fixed_version or '—' }}</td>
-          <td><span class="badge badge-{{ vuln.severity }}">{{ vuln.severity | upper }}</span></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+<!-- Сводка -->
+<h2>Итог</h2>
+<div class="score-line">
+  {% if report.cis_summary.score >= 70 %}
+  <span class="num green">{{ report.cis_summary.score }}/100</span>
+  {% elif report.cis_summary.score >= 40 %}
+  <span class="num orange">{{ report.cis_summary.score }}/100</span>
+  {% else %}
+  <span class="num red">{{ report.cis_summary.score }}/100</span>
   {% endif %}
-
-  <footer>
-    Сгенерировано Docker CIS Scanner v{{ report.cis_report.scanner_version }} •
-    CIS Docker Benchmark v1.8.0
-  </footer>
-
+  Пройдено: {{ report.cis_summary.passed }} &nbsp;·&nbsp;
+  Провалено: {{ report.cis_summary.failed }} &nbsp;·&nbsp;
+  Предупреждений: {{ report.cis_summary.warned }}
+  {% if report.vulnerabilities %}
+  &nbsp;·&nbsp; CVE: {{ report.vulnerabilities | length }}
+  (крит./выс.: {{ report.vuln_summary.critical + report.vuln_summary.high }})
+  {% endif %}
 </div>
+
+<!-- CIS-проверки -->
+<h2>CIS-проверки</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Статус</th>
+      <th>Проверка</th>
+      <th>CIS</th>
+      <th>Серьёзность</th>
+      <th>Детали</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for check in report.cis_report.checks | sort(attribute='status') %}
+    <tr>
+      <td class="status-{{ check.status.value }}">{{ check.status.value | upper }}</td>
+      <td>{{ check.title }}</td>
+      <td>{{ check.cis_reference or '—' }}</td>
+      <td class="sev-{{ check.severity.value }}">{{ check.severity.value | upper }}</td>
+      <td>
+        {{ check.details }}
+        {% if check.status.value in ['fail', 'warn'] and check.remediation %}
+        <div class="tip">{{ check.remediation }}</div>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- CVE -->
+{% if report.vulnerabilities %}
+<h2>CVE-уязвимости ({{ report.vulnerabilities | length }})</h2>
+<table>
+  <thead>
+    <tr>
+      <th>CVE</th>
+      <th>Пакет</th>
+      <th>Версия</th>
+      <th>Исправлено в</th>
+      <th>Серьёзность</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for vuln in report.vulnerabilities | sort(attribute='severity') %}
+    <tr>
+      <td><code>{{ vuln.cve }}</code></td>
+      <td>{{ vuln.package }}</td>
+      <td>{{ vuln.installed_version }}</td>
+      <td>{{ vuln.fixed_version or '—' }}</td>
+      <td class="sev-{{ vuln.severity }}">{{ vuln.severity | upper }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<footer>
+  Docker CIS Scanner v{{ report.cis_report.scanner_version }} · CIS Docker Benchmark v1.8.0
+</footer>
+
 </body>
 </html>

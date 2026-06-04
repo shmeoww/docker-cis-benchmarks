@@ -93,7 +93,7 @@ class VulnSummary(BaseModel):
 class UnifiedReport(BaseModel):
     """
     Финальный отчёт: CIS-проверки (от Go) + CVE-уязвимости (от Trivy)
-    Именно это возвращает FastAPI клиентам и дашборду
+    Возвращает FastAPI клиентам и дашборду
     """
     scan_id:         str
     scanned_at:      datetime
@@ -102,6 +102,7 @@ class UnifiedReport(BaseModel):
     vulnerabilities: list[Vulnerability]  # CVE от Trivy
     vuln_summary:    VulnSummary
     cis_summary:     Summary              # дублируем для удобства дашборда
+    overwritten:     bool = False 
 
 
 # Модели запросов FastAPI

@@ -14,6 +14,7 @@ from models import UnifiedReport, ScanRequest, ScanListItem
 from scanner_client import ScannerClient
 from merger import orchestrate_image_scan, orchestrate_container_scan
 from report import save_html_report
+from storage import load_results, save_results 
 
 # FastAPI-приложение
 app = FastAPI(
@@ -23,6 +24,7 @@ app = FastAPI(
         "Оркестратор безопасности Docker-образов и контейнеров. "
         "Объединяет CIS Benchmark-проверки (Go-сервис) "
         "и CVE-уязвимости (Trivy)."
+        "История сканов сохраняется между перезапусками."
     ),
 )
 
@@ -32,7 +34,7 @@ app = FastAPI(
 scanner = ScannerClient()
 
 # История сканов в памяти: scan_id - UnifiedReport. Сбрасывается при перезапуске сервера
-_results: dict[str, UnifiedReport] = {}
+_results: dict[str, UnifiedReport] = load_results()
 
 
 # Служебные эндпоинты
@@ -51,14 +53,8 @@ def health():
 @app.post("/scan", response_model=UnifiedReport, tags=["Сканирование"])
 def scan(request: ScanRequest):
     """
-    Запустить полный скан цели.
-
-    - **target_type**: "image" или "container"
-    - **target**: имя образа ("mysql:8.0") или имя/ID контейнера
-    - **with_cve**: запускать CVE-скан через Trivy (по умолчанию "true")
-
-    Возвращает UnifiedReport: CIS-проверки + CVE-уязвимости
-    Отчёт сохраняется в "reports/" и доступен через "GET /report/{scan_id}".
+    Запустить скан. Повторный скан того же образа/контейнера
+    перезапишет предыдущий результат (поле overwritten=true).
     """
     try:
         if request.target_type == "image":
@@ -84,7 +80,11 @@ def scan(request: ScanRequest):
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
+    overwritten = report.scan_id in _results
+    report = report.model_copy(update={"overwritten": overwritten})
+ 
     _results[report.scan_id] = report
+    save_results(_results)
     save_html_report(report)
     return report
 

@@ -23,6 +23,7 @@ services:
       - SCANNER_URL=http://scanner:8000
     volumes:
       - ./orchestrator/reports:/app/reports
+      - ./orchestrator/data:/app/data
     depends_on:
       - scanner
     networks:
