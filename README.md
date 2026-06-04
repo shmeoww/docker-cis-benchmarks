@@ -214,9 +214,24 @@ streamlit run dashboard.py --server.port 8501
 
 ## Тесты
 
+### Подготовка (для интеграционных тестов)
+
+Некоторые Go-тесты проверяют реальное сканирование и требуют наличия образов локально. Без них тест **пропустится** (SKIP), а не упадёт (FAIL).
+
 ```bash
-# Go — unit-тесты
-cd scanner && go test -short ./...
+docker pull mysql:8.0   # для TestScanImageEndpoint
+docker pull nats        # для TestCollectImage
+```
+
+### Запуск
+
+```bash
+# Go — unit-тесты (без Docker-образов, запускаются везде)
+cd scanner
+go test -short ./internal/...
+
+# Go — все тесты включая интеграционные (нужны образы выше)
+go test -v ./...
 
 # Go — покрытие (85%)
 go test -coverprofile="coverage.out" ./...
@@ -224,7 +239,19 @@ go tool cover -func="coverage.out"
 
 # Python — все тесты (43 теста, 93% покрытие)
 cd orchestrator && pytest -v
+
+# Python — только unit (без Go-сервиса, запускаются везде)
+pytest -k "not Integration" -v
 ```
+
+### Уровни тестов
+
+| Уровень | Где | Зависимости | Запуск в CI |
+|---|---|---|---|
+| Unit (Go) | `internal/checks`, `internal/model` | нет | ✅ |
+| Unit (Python) | `tests/test_merger`, `test_trivy_client` | нет | ✅ |
+| Интеграционные (Go) | `main_test.go`, `docker_test.go` | Docker + образы | ⏭ пропускаются |
+| Интеграционные (Python) | `TestIntegration` class | Go-сервис | ⏭ пропускаются |
 
 ---
 
