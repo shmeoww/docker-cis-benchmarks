@@ -216,12 +216,24 @@ streamlit run dashboard.py --server.port 8501
 
 ### Подготовка (для интеграционных тестов)
 
-Некоторые Go-тесты проверяют реальное сканирование и требуют наличия образов локально. Без них тест **пропустится** (SKIP), а не упадёт (FAIL).
+Некоторые Go-тесты проверяют реальное сканирование и требуют локальных образов и запущенного контейнера. Без них тест **пропустится** (SKIP), а не упадёт (FAIL).
+
+Оба образа и базовый образ для контейнера — **официальные публичные образы** с Docker Hub / Google Container Registry, доступны без авторизации.
 
 ```bash
-docker pull mysql:8.0   # для TestScanImageEndpoint
-docker pull nats        # для TestCollectImage
+# Образы для тестов сканирования образов
+docker pull mysql:8.0                               # TestScanImage, TestScanImageEndpoint
+docker pull mirror.gcr.io/library/nats:2.10-alpine  # TestCollectImage
+
+# Контейнер для тестов сканирования контейнеров
+# TestCollectContainer, TestScanContainer, TestScanAll берут первый доступный контейнер
+docker run -d --name cis-test-container alpine sleep infinity
 ```
+
+> Остановить и удалить тестовый контейнер после работы:
+> ```bash
+> docker rm -f cis-test-container
+> ```
 
 ### Запуск
 
