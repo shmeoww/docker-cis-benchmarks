@@ -93,26 +93,26 @@
 | `image_use_copy_not_add` | COPY вместо ADD | 4.9 | Low |
 | `image_no_latest_tag` | Версия зафиксирована | — | Medium |
 | `image_no_secrets_in_env` | Нет секретов в ENV | 4.10 | High |
-| `image_no_privileged_ports` | Нет SSH/привилегированных портов | 5.6 | High |
+| `image_no_privileged_ports` | Нет SSH/привилегированных портов | 5.8 | High |
 
 ### Контейнеры (раздел 5)
 
 | ID | Проверка | CIS | Severity |
 |---|---|---|---|
-| `container_no_privileged` | Не --privileged | 5.4 | Critical |
-| `container_restricted_capabilities` | Нет опасных capabilities | 5.3 | High |
-| `container_no_host_network` | Не --net=host | 5.9 | High |
-| `container_no_host_pid` | Не --pid=host | 5.15 | High |
-| `container_no_host_ipc` | Не --ipc=host | 5.16 | Medium |
-| `container_no_docker_socket` | docker.sock не примонтирован | 5.31 | Critical |
-| `container_no_new_privileges` | no-new-privileges установлен | 5.25 | High |
-| `container_readonly_rootfs` | Корневая ФС read-only | 5.12 | Medium |
-| `container_memory_limit` | Лимит памяти задан | 5.10 | Medium |
-| `container_pids_limit` | Лимит PIDs задан | 5.28 | Low |
-| `container_cpu_limit` | Лимит CPU задан | 5.11 | Medium |
-| `container_restart_policy` | Безопасная политика перезапуска | 5.14 | Low |
-| `container_no_sensitive_mounts` | Нет монтирования /, /etc, /boot | 5.5 | Critical |
-| `container_seccomp_apparmor` | seccomp/AppArmor не отключены | 5.21 | High |
+| `container_no_privileged` | Не --privileged | 5.5 | Critical |
+| `container_restricted_capabilities` | Нет опасных capabilities | 5.4 | High |
+| `container_no_host_network` | Не --net=host | 5.10 | High |
+| `container_no_host_pid` | Не --pid=host | 5.16 | High |
+| `container_no_host_ipc` | Не --ipc=host | 5.17 | Medium |
+| `container_no_docker_socket` | docker.sock не примонтирован | 5.32 | Critical |
+| `container_no_new_privileges` | no-new-privileges установлен | 5.26 | High |
+| `container_readonly_rootfs` | Корневая ФС read-only | 5.13 | Medium |
+| `container_memory_limit` | Лимит памяти задан | 5.11 | Medium |
+| `container_pids_limit` | Лимит PIDs задан | 5.29 | Low |
+| `container_cpu_limit` | Лимит CPU задан | 5.12 | Medium |
+| `container_restart_policy` | Безопасная политика перезапуска | 5.15 | Low |
+| `container_no_sensitive_mounts` | Нет монтирования /, /etc, /boot | 5.6 | Critical |
+| `container_seccomp_apparmor` | seccomp/AppArmor не отключены | 5.22 | High |
 
 ---
 
