@@ -39,6 +39,7 @@ type Target struct {
 	Type string `json:"type"` // "image" или "container"
 	ID   string `json:"id"`
 	Name string `json:"name"`
+	Image string `json:"image,omitempty"`
 }
 
 // Summary — сводка по результатам скана.

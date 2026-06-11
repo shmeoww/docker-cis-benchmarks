@@ -11,11 +11,11 @@ import (
 // ContainerChecks — список всех CIS-проверок для запущенных контейнеров
 var ContainerChecks = []ContainerCheck{
 
-	// Проверка 7 (CIS 5.4): не привилегированный режим
+	// Проверка 7 (CIS 5.5): не привилегированный режим
 	{
 		ID:           "container_no_privileged",
 		Title:        "Контейнер не должен запускаться в привилегированном режиме",
-		CISReference: "5.4",
+		CISReference: "5.5",
 		Severity:     model.SeverityCritical,
 		Eval: func(data docker.ContainerData) (model.Status, string, string) {
 			if data.Privileged {
@@ -27,11 +27,11 @@ var ContainerChecks = []ContainerCheck{
 		},
 	},
 
-	// Проверка 8 (CIS 5.3): capabilities ограничены
+	// Проверка 8 (CIS 5.4): capabilities ограничены
 	{
 		ID:           "container_restricted_capabilities",
 		Title:        "Опасные Linux capabilities не должны быть добавлены",
-		CISReference: "5.3",
+		CISReference: "5.4",
 		Severity:     model.SeverityHigh,
 		Eval: func(data docker.ContainerData) (model.Status, string, string) {
 			dangerous := []string{"SYS_ADMIN", "NET_ADMIN", "SYS_PTRACE", "SYS_MODULE", "SYS_RAWIO", "DAC_OVERRIDE", "SETUID", "SETGID", "NET_RAW"}
@@ -53,11 +53,11 @@ var ContainerChecks = []ContainerCheck{
 		},
 	},
 
-	// Проверка 9 (CIS 5.9): не используется сеть хоста
+	// Проверка 9 (CIS 5.10): не используется сеть хоста
 	{
 		ID:           "container_no_host_network",
 		Title:        "Контейнер не должен использовать сеть хоста",
-		CISReference: "5.9",
+		CISReference: "5.10",
 		Severity:     model.SeverityHigh,
 		Eval: func(data docker.ContainerData) (model.Status, string, string) {
 			if data.NetworkMode == "host" {
@@ -69,11 +69,11 @@ var ContainerChecks = []ContainerCheck{
 		},
 	},
 
-	// Проверка 10 (CIS 5.15): не разделяется PID-namespace хоста
+	// Проверка 10 (CIS 5.16): не разделяется PID-namespace хоста
 	{
 		ID:           "container_no_host_pid",
 		Title:        "Контейнер не должен разделять PID-namespace хоста",
-		CISReference: "5.15",
+		CISReference: "5.16",
 		Severity:     model.SeverityHigh,
 		Eval: func(data docker.ContainerData) (model.Status, string, string) {
 			if data.PidMode == "host" {
@@ -85,11 +85,11 @@ var ContainerChecks = []ContainerCheck{
 		},
 	},
 
-	// Проверка 11 (CIS 5.16): не разделяется IPC-namespace хоста
+	// Проверка 11 (CIS 5.17): не разделяется IPC-namespace хоста
 	{
 		ID:           "container_no_host_ipc",
 		Title:        "Контейнер не должен разделять IPC-namespace хоста",
-		CISReference: "5.16",
+		CISReference: "5.17",
 		Severity:     model.SeverityMedium,
 		Eval: func(data docker.ContainerData) (model.Status, string, string) {
 			if data.IpcMode == "host" {
@@ -101,11 +101,11 @@ var ContainerChecks = []ContainerCheck{
 		},
 	},
 
-	// Проверка 12 (CIS 5.31): docker.sock не примонтирован
+	// Проверка 12 (CIS 5.32): docker.sock не примонтирован
 	{
 		ID:           "container_no_docker_socket",
 		Title:        "Docker-сокет не должен быть примонтирован внутрь контейнера",
-		CISReference: "5.31",
+		CISReference: "5.32",
 		Severity:     model.SeverityCritical,
 		Eval: func(data docker.ContainerData) (model.Status, string, string) {
 			for _, bind := range data.Binds {
@@ -119,11 +119,11 @@ var ContainerChecks = []ContainerCheck{
 		},
 	},
 
-	// Проверка 13 (CIS 5.25): флаг no-new-privileges установлен
+	// Проверка 13 (CIS 5.26): флаг no-new-privileges установлен
 	{
 		ID:           "container_no_new_privileges",
 		Title:        "Должен быть установлен флаг no-new-privileges",
-		CISReference: "5.25",
+		CISReference: "5.26",
 		Severity:     model.SeverityHigh,
 		Eval: func(data docker.ContainerData) (model.Status, string, string) {
 			for _, opt := range data.SecurityOpt {
@@ -137,11 +137,11 @@ var ContainerChecks = []ContainerCheck{
 		},
 	},
 
-	// Проверка 14 (CIS 5.12): корневая ФС только для чтения
+	// Проверка 14 (CIS 5.13): корневая ФС только для чтения
 	{
 		ID:           "container_readonly_rootfs",
 		Title:        "Корневая ФС контейнера должна быть только для чтения",
-		CISReference: "5.12",
+		CISReference: "5.13",
 		Severity:     model.SeverityMedium,
 		Eval: func(data docker.ContainerData) (model.Status, string, string) {
 			if !data.ReadonlyRootfs {
@@ -153,11 +153,11 @@ var ContainerChecks = []ContainerCheck{
 		},
 	},
 
-	// Проверка 15 (CIS 5.10): лимит памяти задан
+	// Проверка 15 (CIS 5.11): лимит памяти задан
 	{
 		ID:           "container_memory_limit",
 		Title:        "Должен быть задан лимит памяти",
-		CISReference: "5.10",
+		CISReference: "5.11",
 		Severity:     model.SeverityMedium,
 		Eval: func(data docker.ContainerData) (model.Status, string, string) {
 			if data.MemoryLimit <= 0 {
@@ -170,11 +170,11 @@ var ContainerChecks = []ContainerCheck{
 		},
 	},
 
-	// Проверка 16 (CIS 5.28): лимит PIDs задан
+	// Проверка 16 (CIS 5.29): лимит PIDs задан
 	{
 		ID:           "container_pids_limit",
 		Title:        "Должен быть задан лимит числа процессов (PIDs)",
-		CISReference: "5.28",
+		CISReference: "5.29",
 		Severity:     model.SeverityLow,
 		Eval: func(data docker.ContainerData) (model.Status, string, string) {
 			if data.PidsLimit <= 0 {
@@ -186,11 +186,11 @@ var ContainerChecks = []ContainerCheck{
 		},
 	},
 
-	// Проверка 17 (CIS 5.11): лимит CPU задан
+	// Проверка 17 (CIS 5.12): лимит CPU задан
 	{
 		ID:           "container_cpu_limit",
 		Title:        "Должен быть задан лимит CPU",
-		CISReference: "5.11",
+		CISReference: "5.12",
 		Severity:     model.SeverityMedium,
 		Eval: func(data docker.ContainerData) (model.Status, string, string) {
 			if data.NanoCPUs <= 0 {
@@ -203,11 +203,11 @@ var ContainerChecks = []ContainerCheck{
 		},
 	},
 
-	// Проверка 18 (CIS 5.14): политика перезапуска безопасна
+	// Проверка 18 (CIS 5.15): политика перезапуска безопасна
 	{
 		ID:           "container_restart_policy",
 		Title:        "Политика перезапуска должна быть безопасной",
-		CISReference: "5.14",
+		CISReference: "5.15",
 		Severity:     model.SeverityLow,
 		Eval: func(data docker.ContainerData) (model.Status, string, string) {
 			switch data.RestartPolicy {
@@ -224,11 +224,11 @@ var ContainerChecks = []ContainerCheck{
 		},
 	},
 
-	// Проверка 19 (CIS 5.5): чувствительные каталоги хоста не примонтированы
+	// Проверка 19 (CIS 5.6): чувствительные каталоги хоста не примонтированы
 	{
 		ID:           "container_no_sensitive_mounts",
 		Title:        "Чувствительные каталоги хоста не должны быть примонтированы",
-		CISReference: "5.5",
+		CISReference: "5.6",
 		Severity:     model.SeverityCritical,
 		Eval: func(data docker.ContainerData) (model.Status, string, string) {
 			sensitive := []string{"/etc", "/boot", "/proc", "/sys", "/var/run"}
@@ -252,11 +252,11 @@ var ContainerChecks = []ContainerCheck{
 		},
 	},
 
-	// Проверка 20 (CIS 5.1 / 5.21): seccomp и AppArmor не отключены
+	// Проверка 20 (CIS 5.22): seccomp и AppArmor не отключены
 	{
 		ID:           "container_seccomp_apparmor",
 		Title:        "seccomp и AppArmor не должны быть явно отключены",
-		CISReference: "5.21",
+		CISReference: "5.22",
 		Severity:     model.SeverityHigh,
 		Eval: func(data docker.ContainerData) (model.Status, string, string) {
 			for _, opt := range data.SecurityOpt {

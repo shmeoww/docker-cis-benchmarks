@@ -23,7 +23,7 @@ func ScanImage(ctx context.Context, cli *client.Client, ref string) (model.ScanR
 	return model.ScanReport{
 		ScannerVersion: Version,
 		ScannedAt:      time.Now(),
-		Target:         model.Target{Type: "image", ID: data.ID, Name: ref},
+		Target:         model.Target{Type: "image", ID: data.ID, Name: ref, Image: ref},
 		Summary:        model.ComputeSummary(results),
 		Checks:         results,
 	}, nil
@@ -39,7 +39,7 @@ func ScanContainer(ctx context.Context, cli *client.Client, ref string) (model.S
 	return model.ScanReport{
 		ScannerVersion: Version,
 		ScannedAt:      time.Now(),
-		Target:         model.Target{Type: "container", ID: data.ID, Name: data.Name},
+		Target:         model.Target{Type: "container", ID: data.ID, Name: data.Name, Image: data.Image},
 		Summary:        model.ComputeSummary(results),
 		Checks:         results,
 	}, nil

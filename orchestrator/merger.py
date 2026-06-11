@@ -67,7 +67,8 @@ def orchestrate_container_scan(
 ) -> UnifiedReport:
     cis_report = scanner.scan_container(container_id)
     if with_cve:
-        vulns, vuln_summary = scan_image_cve(cis_report.target.name)
+        image_ref = cis_report.target.image or cis_report.target.name
+        vulns, vuln_summary = scan_image_cve(image_ref)
     else:
         vulns, vuln_summary = [], VulnSummary()
     return merge_results(cis_report, vulns, vuln_summary, deterministic_id=True)

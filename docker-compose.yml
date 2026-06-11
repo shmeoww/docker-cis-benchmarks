@@ -24,6 +24,7 @@ services:
     volumes:
       - ./orchestrator/reports:/app/reports
       - ./orchestrator/data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - scanner
     networks:

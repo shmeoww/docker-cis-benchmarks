@@ -46,6 +46,7 @@ class Target(BaseModel):
     type: str   # "image" или "container"
     id:   str
     name: str
+    image: str | None = None
 
 
 class Summary(BaseModel):

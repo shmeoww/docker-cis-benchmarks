@@ -110,11 +110,11 @@ var ImageChecks = []ImageCheck{
 		},
 	},
 
-	// Проверка 6 (CIS 5.6 / 5.7): нет SSH-порта и привилегированных портов в EXPOSE
+	// Проверка 6 (CIS 5.8): нет SSH-порта и привилегированных портов в EXPOSE
 	{
 		ID:           "image_no_privileged_ports",
 		Title:        "Образ не должен открывать SSH-порт или привилегированные порты",
-		CISReference: "5.6",
+		CISReference: "5.8",
 		Severity:     model.SeverityHigh,
 		Eval: func(data docker.ImageData) (model.Status, string, string) {
 			for _, port := range data.ExposedPorts {
